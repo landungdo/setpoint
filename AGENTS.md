@@ -5,7 +5,7 @@ Operating manual for every AI coding agent (Codex, Cursor, Claude Code, Grok, Qw
 
 ## 1. Product in one paragraph
 
-Setpoint is a mobile-first training log for people who lift **and** play racket sports (pickleball, badminton, tennis, padel). Core loop: one-tap set logging with double-progression suggestions, court sessions counted as training load, weekly review. Asia first (Vietnam), global later. Bilingual Vietnamese / English. Current version: **v0.1.1**.
+Setpoint is a mobile-first training log for people who lift **and** play racket sports (pickleball, badminton, tennis, padel). Core loop: one-tap set logging with double-progression suggestions, court sessions counted as training load, weekly review. Asia first (Vietnam), global later. Bilingual Vietnamese / English. Current version: **v0.2.0**.
 Intent: `docs/masterplan/` · Decisions: `docs/decisions/decision-log.md` · Shipped behaviour: `docs/specs/`.
 
 ## 2. Roles
@@ -23,7 +23,7 @@ You implement; you do not redesign. You may **propose** decisions (record them a
 **Danger zones** — explain the change and the risk, then wait for the PO's explicit OK:
 1. **Data schema**: the shape of `S`, the `localStorage` key, any stored field. Changes need a migration in `migrate()`.
 2. **Sync**: `Cloud`, `initCloud()`, `touchState()`, `touchMonth()`, `retireMonths()`, document paths.
-3. **Progression**: `suggest()`, `isPR()`, `e1rm()`, `bestE1()`, `normCfg()`, `defaultInc()`.
+3. **Progression & insights**: `suggest()`, `nextGate()`, `isPR()`, `isRepPR()`, `e1rm()`, `bestE1()`, `normCfg()`, `defaultInc()`, `warmupSets()`, `computeInsight()`, `projectWeeks()`, `weekStreak()`.
 4. **Backup**: `doExport()`, `doImport()`, `validateBackupObject()`, `schema_version`.
 5. **Architecture**: frameworks, build steps, runtime dependencies, external hosts, splitting the single file.
 6. **Product metrics**: how `logSec`, `taps`, `accepted` are measured or reported.
@@ -56,17 +56,19 @@ CHANGELOG.md           every change goes under ## [Unreleased]
 - **Offline first**: logging works with no network.
 - **Test hook**: `window.__SETPOINT_TEST__` exposes `window.SetpointTest` and skips boot. Keep it working.
 
-## 6. Data model (v0.1.1)
+## 6. Data model (v0.2.0 — additive to v0.1.1)
 
 ```js
 S = {
   v: 1,
-  settings: { lang, unit, theme, onboarded, sports: [id], bodyweight /*kg*/, height, birthYear, restDefault /*s*/, lastBackupAt /*ms*/ },
+  settings: { lang, unit, theme, onboarded, sports: [id], bodyweight /*kg*/, height, birthYear, restDefault /*s*/, lastBackupAt /*ms*/,
+              goal, scheduleMode: 'weekday'|'rotation', pain: [exId], targets: {exId: kg}, weekPlans: {weekMonday: n},
+              restWeeks: [weekMonday], insightSeen: {exId: ms}, insightWeek, milestones: [id] },
   templates: [{ id, name, days: [0-6], exercises: [{ exId, sets, repMin, repMax, inc /*kg*/, rest /*s*/ }] }],
   custom:    [{ id: 'c_…', vi, en, m }],
   sessions: [
     { id, type:'gym', templateId, name, start, tz, end, durationMin /*1–1440*/, rpe, notes /*≤2000*/,
-      exercises: [{ exId, cfg, sets: [{ kg, reps, pr, logSec, taps, accepted, t }] }] },
+      exercises: [{ exId, cfg, sets: [{ kg, reps, pr, prRep?, w? /*warm-up*/, logSec, taps, accepted, t }] }] },
     { id, type:'court', sport, start, tz, durationMin /*1–600*/, rpe, load /* = durationMin × rpe */ }
   ],
   active: null | { … }   // in-progress workout, local only
@@ -127,9 +129,10 @@ Cloud (inside Claude only): `data/users/<uid>/state` and `data/users/<uid>/m-YYY
 
 ## 12. Status and open questions
 
-- **Shipped**: v0.1.1 (see CHANGELOG).
+- **Shipped**: v0.2.0 (see CHANGELOG and `docs/specs/functional-spec-v0.2.0.md`). Warm-up sets (`w: true`) must stay excluded from progression, PRs and stats.
 - **Open (do not change until the PO decides)**: definition of the "seconds per set" metric — one-tap confirmations currently record 0.1 s.
-- **Next**: R0.2 (progression charts, weekly review, bodyweight, CSV). Implement only after its spec exists in `docs/specs/`.
+- **Notifications (D-018)**: silent by default; do not add pop-ups or extra alerts without PO approval.
+- **Next**: edit saved sessions, bodyweight trend, CSV export, weekly review, court-to-gym rules. Implement only after a spec exists in `docs/specs/`.
 
 ## 13. Session start prompt (for the PO to paste)
 

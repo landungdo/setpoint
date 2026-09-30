@@ -5,7 +5,7 @@
 
 Setpoint connects the gym, the court and the plate in one weekly rhythm: one-tap set logging with progression suggestions, court sessions (pickleball, badminton, tennis, padel) counted as training load, and — in upcoming releases — nutrition based on the food people actually eat.
 
-> **Status:** `v0.1.1` — hardened R0.1 MVP, dogfooding and Phase 0 user interviews in progress.
+> **Status:** `v0.2.0` — progress & habit features, dogfooding and Phase 0 user interviews in progress.
 > **Name:** "Setpoint" is a working name pending trademark checks.
 
 ---
@@ -17,7 +17,7 @@ Setpoint connects the gym, the court and the plate in one weekly rhythm: one-tap
 
 On iPhone, open the link in Safari → Share → *Add to Home Screen* for an app-like experience.
 
-## What v0.1.1 does
+## What v0.2.0 does
 
 | Area | Features |
 |---|---|
@@ -25,7 +25,8 @@ On iPhone, open the link in Safari → Share → *Add to Home Screen* for an app
 | Workout | Last-session values, prefilled suggestions (double progression), one-tap confirm, PR detection, rest timer |
 | Quick entry | `80x10x3` · `80 10 10 9` · `20x10 / 25x8` |
 | Court | Log a racket or other sport session in seconds; session load = minutes × RPE |
-| History | Sessions grouped by day with details |
+| Progress | Weekly streak, 16-week heatmap, exercise charts with targets and forecasts, weekly insight, history |
+| Habits | Warm-up sets, progress bar to next weight, delta vs last time, rep PRs, pain flag, rotation scheduling, weekly plan, milestones |
 | Data | JSON backup export/import; automatic private backup when opened inside Claude |
 | Metrics | Seconds per set, taps per set, suggestion acceptance, weeks with 3+ sessions |
 

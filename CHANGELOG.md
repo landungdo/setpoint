@@ -4,6 +4,26 @@ All notable changes to Setpoint are documented here. Versions follow [Semantic V
 
 ## [Unreleased]
 
+## [0.2.0] – 2026-09-30 — Progress & habits
+
+### Added
+- Warm-up sets: generator (50/70/85 %), toggle by tapping the set number; excluded from suggestions, PRs and stats.
+- Progress bar to the next weight, delta vs last time under each set, rep PRs, per-exercise finish summary.
+- Pain flag per exercise: holds progression, silences insights, lists alternatives.
+- Rotation scheduling ("next in rotation") alongside weekday scheduling; plan reordering.
+- This week: day labels, planned-vs-done rings, tap a day for details or to start a plan, sets per muscle group, weekly session plan.
+- Progress tab (replaces History): weekly streak with planned rest weeks, weekly insight (stall/drop, max one per week), 16-week load heatmap, exercise list with trends, exercise detail with e1RM chart, target and forecast.
+- Training goal (strength / muscle growth / maintain) for default rep ranges and rest.
+- Milestones (sessions, tonnes, one year), shown once.
+- CI: GitHub Actions runs `npm test` on every PR and push to main. `.gitattributes` normalizes line endings.
+
+### Fixed
+- Warm-up sets no longer prevent weight increases or misalign rep suggestions.
+- e1RM for a single rep equals the weight.
+
+### Tests
+- 13 new logic tests (21 total).
+
 ## [0.1.1] – 2026-09-30 — R0.1 hardening
 
 ### Fixed
