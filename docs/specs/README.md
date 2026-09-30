@@ -2,6 +2,7 @@
 
 | Document | Status |
 |---|---|
+| [Functional Specification v0.3.0](functional-spec-v0.3.0.md) | As built — additions in v0.3.0 |
 | [Functional Specification v0.2.0](functional-spec-v0.2.0.md) | As built — additions in v0.2.0 |
 | [Functional Specification R0.1.1](functional-spec-r0.1.1.md) | As built — base behaviour |
 | [Technical README](technical-readme.md) | Current |

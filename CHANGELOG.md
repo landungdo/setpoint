@@ -4,6 +4,26 @@ All notable changes to Setpoint are documented here. Versions follow [Semantic V
 
 ## [Unreleased]
 
+## [0.3.0] – 2026-09-30 — Plan, library & body
+
+### Added
+- Scheduling by date from the week view: an existing plan, a recent session, a new plan, or a rest day; date plans take priority over the weekly schedule.
+- "Same as last time" court logging in one tap, guarded against double taps.
+- Exercise library screen (Plans tab): search, muscle and type filters, create/edit/delete custom exercises, hide built-in ones.
+- Library expanded from 34 to 109 exercises, including court-prep moves; all existing IDs unchanged.
+- Exercise types: weighted, bodyweight (added load, rep PRs) and timed (seconds, +5 s suggestions, longest-hold PRs), with type-aware quick entry, charts and summaries.
+- Body stats log (Progress tab): weight and InBody metrics by measurement date, trend chart, change vs previous and first measurement, BMI.
+- Visual refresh: court-line backdrop, glass cards, floating tab bar, champagne gold accent, light and dark themes.
+
+### Fixed
+- List icons (play, check) were invisible.
+- Weekly streak label squeezed to one word per line; sample-plan button overflowed; workout action links wrapped mid-label; rest-timer "Skip" wrapped; quick-entry placeholder was cut off.
+- Importing a backup navigated to a tab that no longer exists.
+- Plank history stored seconds as reps; converted automatically.
+
+### Tests
+- 10 new logic tests (31 total).
+
 ## [0.2.0] – 2026-09-30 — Progress & habits
 
 ### Added

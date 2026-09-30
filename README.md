@@ -5,7 +5,7 @@
 
 Setpoint connects the gym, the court and the plate in one weekly rhythm: one-tap set logging with progression suggestions, court sessions (pickleball, badminton, tennis, padel) counted as training load, and — in upcoming releases — nutrition based on the food people actually eat.
 
-> **Status:** `v0.2.0` — progress & habit features, dogfooding and Phase 0 user interviews in progress.
+> **Status:** `v0.3.0` — date scheduling, exercise library, body stats, dogfooding and Phase 0 user interviews in progress.
 > **Name:** "Setpoint" is a working name pending trademark checks.
 
 ---
@@ -17,15 +17,16 @@ Setpoint connects the gym, the court and the plate in one weekly rhythm: one-tap
 
 On iPhone, open the link in Safari → Share → *Add to Home Screen* for an app-like experience.
 
-## What v0.2.0 does
+## What v0.3.0 does
 
 | Area | Features |
 |---|---|
-| Plans | Workout templates with target rep ranges, weekday schedule, Push/Pull/Legs sample |
+| Plans | Workout templates with target rep ranges, weekday or rotation schedule, scheduling by date from the week view, Push/Pull/Legs sample |
+| Library | 109 exercises plus your own; weighted, bodyweight and timed types; search, filters, hide unused |
 | Workout | Last-session values, prefilled suggestions (double progression), one-tap confirm, PR detection, rest timer |
 | Quick entry | `80x10x3` · `80 10 10 9` · `20x10 / 25x8` |
-| Court | Log a racket or other sport session in seconds; session load = minutes × RPE |
-| Progress | Weekly streak, 16-week heatmap, exercise charts with targets and forecasts, weekly insight, history |
+| Court | Log a racket or other sport session in seconds, or repeat the last one in one tap; session load = minutes × RPE |
+| Progress | Body stats log (weight + InBody by date) with trends, weekly streak, 16-week heatmap, exercise charts with targets and forecasts, weekly insight, history |
 | Habits | Warm-up sets, progress bar to next weight, delta vs last time, rep PRs, pain flag, rotation scheduling, weekly plan, milestones |
 | Data | JSON backup export/import; automatic private backup when opened inside Claude |
 | Metrics | Seconds per set, taps per set, suggestion acceptance, weeks with 3+ sessions |

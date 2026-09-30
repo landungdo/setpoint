@@ -1,4 +1,4 @@
-# Technical README — Setpoint R0.1.1
+# Technical README — Setpoint v0.3.0
 
 ## Architecture
 
@@ -19,6 +19,7 @@ Browser state is stored under localStorage key setpoint.v1:
 - templates: workout plans.
 - custom: user-defined exercises.
 - sessions: completed gym and court sessions.
+- body: dated body measurements (v0.3, one per date, kg-based).
 - active: an unfinished workout.
 - meta: update timestamps for cloud conflict resolution.
 
@@ -44,7 +45,7 @@ Every state mutation is persisted locally first.
 
 When the Claude db and user capabilities exist:
 
-- data/users/{user-id}/state stores settings, templates and custom exercises.
+- data/users/{user-id}/state stores settings, templates, custom exercises and body measurements.
 - data/users/{user-id}/m-YYYY-MM stores sessions for a month.
 - Each document has an updatedAt timestamp.
 - Newer remote documents replace older local partitions.
