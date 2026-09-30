@@ -4,6 +4,9 @@ All notable changes to Setpoint are documented here. Versions follow [Semantic V
 
 ## [Unreleased]
 
+### Fixed
+- Workout set rows can remove the selected unconfirmed set instead of only removing the last set; confirmed sets must be undone first and every exercise keeps at least one set.
+
 ## [0.3.0] – 2026-09-30 — Plan, library & body
 
 ### Added

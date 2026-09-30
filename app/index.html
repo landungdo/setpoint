@@ -161,7 +161,7 @@ h1,h2,h3,p{margin:0}
 .ex-last{font-size:14px;color:var(--muted);margin-top:8px}
 .ex-last b{font-family:var(--num);font-size:18px;font-weight:600;color:var(--ink);letter-spacing:.01em}
 .ex-why{font-size:13px;color:var(--accent-text);margin-top:2px;font-weight:500}
-.set{display:grid;grid-template-columns:30px 1fr 1fr 52px;gap:6px;align-items:center;padding:6px 0}
+.set{display:grid;grid-template-columns:30px minmax(0,1fr) minmax(0,1fr) 52px 44px;gap:6px;align-items:center;padding:6px 0}
 .set.head{padding:10px 0 0;font-size:12px;color:var(--muted);text-align:center;font-weight:600}
 .set-no{font-family:var(--num);font-size:20px;font-weight:600;color:var(--muted);text-align:center;line-height:1}
 .pr{display:block;font-family:var(--font);font-size:10px;font-weight:700;color:var(--good);margin-top:2px}
@@ -173,6 +173,10 @@ h1,h2,h3,p{margin:0}
 .num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .check{height:54px;border-radius:12px;border:2px solid var(--line);display:grid;place-items:center;color:var(--muted)}
 .check svg{width:24px;height:24px}
+.set-remove{width:44px;height:54px;border-radius:12px;display:grid;place-items:center;color:var(--muted)}
+.set-remove svg{width:20px;height:20px}
+.set-remove:not(:disabled):active{background:var(--surface-2);color:var(--bad)}
+.set-remove:disabled{opacity:.22}
 .set.done .check{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .set.done .stepper{background:transparent}
 .set.done .stepper button{visibility:hidden}
@@ -605,7 +609,7 @@ vi:{
   backupT:'Đã hơn 7 ngày chưa sao lưu', backupS:'Dữ liệu đang nằm trên máy này. Xuất một file sao lưu để không mất lịch sử tập.', backupNow:'Xuất file sao lưu',
   finish:'Kết thúc', minimize:'Thu nhỏ', lastTime:'Lần trước:', firstTime:'Lần đầu tập bài này. Nhập mức tạ bạn định dùng.',
   whyNew:'Chưa có dữ liệu để gợi ý.', whyUp:'Lần trước đạt đủ rep. Tăng lên {to}.', whyHold:'Giữ {kg}, cố thêm 1 rep mỗi set.',
-  reps:'rep', addSet:'Thêm set', removeSet:'Bớt set', confirmSet:'Xác nhận set {n}', undoSet:'Bỏ xác nhận set {n}',
+  reps:'rep', addSet:'Thêm set', removeSetN:'Xóa set {n}', confirmSet:'Xác nhận set {n}', undoSet:'Bỏ xác nhận set {n}',
   removeExercise:'Bỏ bài này', addExercise:'Thêm bài tập', woEmpty:'Chưa có bài nào. Thêm bài tập để bắt đầu.',
   qePh:'Gõ nhanh, vd 80x10x3', qeLabel:'Gõ nhanh các set', qeApply:'Ghi',
   qeBad:'Chưa đọc được. Thử dạng 80x10x3 hoặc 80 10 10 9.', qePrev:'Sẽ ghi {n} set: {list}',
@@ -705,7 +709,7 @@ en:{
   backupT:'No backup in over 7 days', backupS:'Your data lives on this device only. Export a backup file so you never lose your history.', backupNow:'Export backup',
   finish:'Finish', minimize:'Minimize', lastTime:'Last time:', firstTime:'First time on this exercise. Enter the weight you plan to use.',
   whyNew:'No history yet to suggest from.', whyUp:'You hit the top of the rep range. Go up to {to}.', whyHold:'Stay at {kg} and aim for one more rep per set.',
-  reps:'reps', addSet:'Add set', removeSet:'Remove set', confirmSet:'Confirm set {n}', undoSet:'Undo set {n}',
+  reps:'reps', addSet:'Add set', removeSetN:'Remove set {n}', confirmSet:'Confirm set {n}', undoSet:'Undo set {n}',
   removeExercise:'Remove exercise', addExercise:'Add exercise', woEmpty:'No exercises yet. Add one to get started.',
   qePh:'Quick: 80x10x3 or 80 10 10', qeLabel:'Quick set entry', qeApply:'Log',
   qeBad:'Could not read that. Try 80x10x3 or 80 10 10 9.', qePrev:'Will log {n} sets: {list}', qePrev_one:'Will log 1 set: {list}',
@@ -1602,7 +1606,6 @@ function viewWorkout(){
 function viewEx(ex, ei){
   const sg = suggest(ex.cfg, ex.exId), alt = exAlt(ex.exId), gate = nextGate(ex), ty = exType(ex.exId);
   const hasW = ex.sets.some(x => x.w);
-  const lastDone = ex.sets.length && ex.sets[ex.sets.length - 1].done;
   let gateHtml = '';
   if (gate) {
     const pct = Math.round(100 * gate.have / gate.need), kg = dispW(gate.nk) + ' ' + unitLabel();
@@ -1615,10 +1618,9 @@ function viewEx(ex, ei){
     '<button class="icon-btn sm" data-a="ex-rm" data-ei="' + ei + '" aria-label="' + t('removeExercise') + '">' + ICON.x + '</button></div>' +
     '<div class="ex-last">' + (sg.last ? t('lastTime') + ' <b>' + esc(fmtSets(sg.last.sets, ex.exId)) + '</b>' : t('firstTime')) + '</div>' +
     (sg.last ? '<div class="ex-why">' + esc(sg.why) + '</div>' : '') + gateHtml +
-    '<div class="set head" aria-hidden="true"><span></span><span>' + (ty === 'weighted' ? unitLabel() : '+' + unitLabel()) + '</span><span>' + (ty === TM ? t('secShort') : t('reps')) + '</span><span></span></div>' +
+    '<div class="set head" aria-hidden="true"><span></span><span>' + (ty === 'weighted' ? unitLabel() : '+' + unitLabel()) + '</span><span>' + (ty === TM ? t('secShort') : t('reps')) + '</span><span></span><span></span></div>' +
     ex.sets.map((st, si) => viewSet(ex, st, ei, si, st.w ? 0 : ++no)).join('') +
     '<div class="ex-actions"><button class="link" data-a="set-add" data-ei="' + ei + '">+ ' + t('addSet') + '</button>' +
-    (ex.sets.length > 1 && !lastDone ? '<button class="link muted" data-a="set-rm" data-ei="' + ei + '">− ' + t('removeSet') + '</button>' : '') +
     (!hasW && ty === 'weighted' ? '<button class="link muted" data-a="warmup-add" data-ei="' + ei + '">+ ' + t('addWarmup') + '</button>' : '') + '</div>' +
     '<div class="qe"><input class="qe-in" data-qe="' + ei + '" placeholder="' + esc(t(ty === TM ? 'qePhTime' : ty === BW ? 'qePhBw' : 'qePh')) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="' + esc(t('qeLabel')) + '">' +
     '<button class="btn btn-ghost btn-sm" data-a="qe-apply" data-ei="' + ei + '">' + t('qeApply') + '</button></div>' +
@@ -1637,7 +1639,13 @@ function viewSet(ex, st, ei, si, no){
   const badge = st.pr ? '<span class="pr">PR</span>' : st.prRep ? '<span class="pr">' + t('prRepShort') + '</span>' : '';
   return '<div class="set' + (st.done ? ' done' : '') + (st.w ? ' warm' : '') + '"><button class="set-no" data-a="set-w" data-ei="' + ei + '" data-si="' + si + '" aria-label="' + esc(t('toggleWarmup')) + '">' + esc(label) + badge + '</button>' +
     stepper('kg', st, ei, si) + stepper(valKey(ex.exId), st, ei, si) +
-    '<button class="check" data-a="set-done" data-ei="' + ei + '" data-si="' + si + '" aria-pressed="' + !!st.done + '" aria-label="' + esc(st.done ? t('undoSet', {n: label}) : t('confirmSet', {n: label})) + '">' + ICON.check + '</button></div>' + delta;
+    '<button class="check" data-a="set-done" data-ei="' + ei + '" data-si="' + si + '" aria-pressed="' + !!st.done + '" aria-label="' + esc(st.done ? t('undoSet', {n: label}) : t('confirmSet', {n: label})) + '">' + ICON.check + '</button>' +
+    '<button class="set-remove" data-a="set-rm" data-ei="' + ei + '" data-si="' + si + '" aria-label="' + esc(t('removeSetN', {n: label})) + '"' + (st.done || ex.sets.length <= 1 ? ' disabled' : '') + '>' + ICON.x + '</button></div>' + delta;
+}
+function removeSetAt(ex, si){
+  if (!ex || !Array.isArray(ex.sets) || ex.sets.length <= 1 || !Number.isInteger(si) || si < 0 || si >= ex.sets.length || ex.sets[si].done) return false;
+  ex.sets.splice(si, 1);
+  return true;
 }
 function stepper(f, st, ei, si){
   const val = f === 'kg' ? dispW(st.kg) : (st[f] == null ? '' : st[f]);
@@ -2344,7 +2352,7 @@ const A = {
     else ex.sets.push({kg: last ? last.kg : (isBW(ex.exId) ? 0 : null), reps: last ? last.reps : ex.cfg.repMin, sugKg: null, sugReps: null, done: false, t0: null, taps: 0, pr: false, prRep: false, w: false});
     persist(); render();
   },
-  'set-rm': el => { const ex = S.active.exercises[+el.dataset.ei]; if (ex.sets.length > 1 && !ex.sets[ex.sets.length - 1].done) ex.sets.pop(); persist(); render(); },
+  'set-rm': el => { const ex = S.active.exercises[+el.dataset.ei]; if (removeSetAt(ex, +el.dataset.si)) { persist(); render(); } },
   'ex-rm': el => { S.active.exercises.splice(+el.dataset.ei, 1); persist(); render(); },
   'qe-apply': el => {
     ensureAudio();
@@ -2625,7 +2633,7 @@ if (window.__SETPOINT_TEST__) {
     lib: LIB, bodyMetrics: BODY_M,
     validateBackupObject,
     logDuration,
-    e1rm, suggest, normCfg, warmupSets, nextRotation, projectWeeks, computeInsight, weekStreak, exposures, isRepPR, isPR, nextGate, checkMilestones,
+    e1rm, suggest, normCfg, warmupSets, removeSetAt, nextRotation, projectWeeks, computeInsight, weekStreak, exposures, isRepPR, isPR, nextGate, checkMilestones,
     setState(x){ S = migrate(x); },
     getState(){ return S; },
     defaultIncrement(id, unit){

@@ -39,6 +39,20 @@ test('library: about 100 unique exercises, every v0.2 id kept, valid fields', ()
   lib.forEach(e => { assert.ok(e.vi && e.en, e.id); assert.ok(muscles.includes(e.m), e.id); assert.ok(e.type == null || ['bodyweight','timed'].includes(e.type), e.id); });
 });
 
+test('workout removes the selected unconfirmed set, not just the last one', () => {
+  const ex = { sets: [
+    { id: 'warmup', w: true, done: false },
+    { id: 'middle', done: false },
+    { id: 'last', done: false }
+  ] };
+  assert.equal(api.removeSetAt(ex, 1), true);
+  eq(ex.sets.map(s => s.id), ['warmup', 'last']);
+  ex.sets[0].done = true;
+  assert.equal(api.removeSetAt(ex, 0), false, 'confirmed sets must be undone first');
+  assert.equal(api.removeSetAt(ex, 1), true);
+  assert.equal(api.removeSetAt(ex, 0), false, 'an exercise must keep at least one set');
+});
+
 test('migrate: plank sets stored as reps (v0.2) become seconds, idempotently', () => {
   state([gym(3, 'plank', [set(0, 45), set(0, 40)])]);
   const s1 = api.getState().sessions[0].exercises[0].sets;

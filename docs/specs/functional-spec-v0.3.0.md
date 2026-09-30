@@ -46,6 +46,7 @@ Status: As built · Date: 30/09/2026 · Base: `functional-spec-v0.2.0.md` and `f
 ## 6. Interface
 - Visual refresh: deep court-blue theme with champagne gold accent, court-line backdrop fading down the page with light grain, glass cards, floating tab bar, sheet handle and slide-up, gold-tinted selected chips. Light and dark themes. System fonts only, no external requests.
 - UI fixes: list icons (▶, ✓) were invisible; weekly streak label squeezed to one word per line; sample-plan button overflowed; workout action links wrapped mid-label; import navigated to a removed tab; quick-entry placeholder was cut off; rest-timer "Skip" wrapped.
+- Each workout set row has its own remove action. It removes that exact unconfirmed set, confirmed sets must be undone first, and an exercise always keeps at least one set.
 
 ## 7. Data (additive, schema version unchanged = 1)
 - Top level: `body: [{ id, date: 'YYYY-MM-DD', kg?, pbf?, smm?, bfm?, vfl?, waist?, tbw?, bmr?, score? }]` — synced inside the `state` cloud document.
