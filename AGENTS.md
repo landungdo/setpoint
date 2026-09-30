@@ -5,7 +5,7 @@ Operating manual for every AI coding agent (Codex, Cursor, Claude Code, Grok, Qw
 
 ## 1. Product in one paragraph
 
-Setpoint is a mobile-first training log for people who lift **and** play racket sports (pickleball, badminton, tennis, padel). Core loop: one-tap set logging with double-progression suggestions, court sessions counted as training load, weekly review. Asia first (Vietnam), global later. Bilingual Vietnamese / English. Current version: **v0.2.0**.
+Setpoint is a mobile-first training log for people who lift **and** play racket sports (pickleball, badminton, tennis, padel). Core loop: one-tap set logging with double-progression suggestions, court sessions counted as training load, weekly review. Asia first (Vietnam), global later. Bilingual Vietnamese / English. Current version: **v0.3.0**.
 Intent: `docs/masterplan/` · Decisions: `docs/decisions/decision-log.md` · Shipped behaviour: `docs/specs/`.
 
 ## 2. Roles
@@ -23,7 +23,7 @@ You implement; you do not redesign. You may **propose** decisions (record them a
 **Danger zones** — explain the change and the risk, then wait for the PO's explicit OK:
 1. **Data schema**: the shape of `S`, the `localStorage` key, any stored field. Changes need a migration in `migrate()`.
 2. **Sync**: `Cloud`, `initCloud()`, `touchState()`, `touchMonth()`, `retireMonths()`, document paths.
-3. **Progression & insights**: `suggest()`, `nextGate()`, `isPR()`, `isRepPR()`, `e1rm()`, `bestE1()`, `normCfg()`, `defaultInc()`, `warmupSets()`, `computeInsight()`, `projectWeeks()`, `weekStreak()`.
+3. **Progression & insights**: `setScore()`, `exType()`, `normSessions()`, `suggest()`, `nextGate()`, `isPR()`, `isRepPR()`, `e1rm()`, `bestE1()`, `normCfg()`, `defaultInc()`, `warmupSets()`, `computeInsight()`, `projectWeeks()`, `weekStreak()`.
 4. **Backup**: `doExport()`, `doImport()`, `validateBackupObject()`, `schema_version`.
 5. **Architecture**: frameworks, build steps, runtime dependencies, external hosts, splitting the single file.
 6. **Product metrics**: how `logSec`, `taps`, `accepted` are measured or reported.
@@ -56,27 +56,30 @@ CHANGELOG.md           every change goes under ## [Unreleased]
 - **Offline first**: logging works with no network.
 - **Test hook**: `window.__SETPOINT_TEST__` exposes `window.SetpointTest` and skips boot. Keep it working.
 
-## 6. Data model (v0.2.0 — additive to v0.1.1)
+## 6. Data model (v0.3.0 — additive to v0.2.0)
 
 ```js
 S = {
   v: 1,
   settings: { lang, unit, theme, onboarded, sports: [id], bodyweight /*kg*/, height, birthYear, restDefault /*s*/, lastBackupAt /*ms*/,
               goal, scheduleMode: 'weekday'|'rotation', pain: [exId], targets: {exId: kg}, weekPlans: {weekMonday: n},
-              restWeeks: [weekMonday], insightSeen: {exId: ms}, insightWeek, milestones: [id] },
+              restWeeks: [weekMonday], insightSeen: {exId: ms}, insightWeek, milestones: [id],
+              dayPlans: {'YYYY-MM-DD': {k:'tpl'|'sess', id} | {k:'rest'}}, hiddenEx: [exId] },
   templates: [{ id, name, days: [0-6], exercises: [{ exId, sets, repMin, repMax, inc /*kg*/, rest /*s*/ }] }],
-  custom:    [{ id: 'c_…', vi, en, m }],
+  custom:    [{ id: 'c_…', vi, en, m, type: 'weighted'|'bodyweight'|'timed' }],
   sessions: [
     { id, type:'gym', templateId, name, start, tz, end, durationMin /*1–1440*/, rpe, notes /*≤2000*/,
-      exercises: [{ exId, cfg, sets: [{ kg, reps, pr, prRep?, w? /*warm-up*/, logSec, taps, accepted, t }] }] },
+      exercises: [{ exId, cfg, sets: [{ kg, reps | sec /*timed*/, pr, prRep?, w? /*warm-up*/, logSec, taps, accepted, t }] }] },
     { id, type:'court', sport, start, tz, durationMin /*1–600*/, rpe, load /* = durationMin × rpe */ }
   ],
+  body:     [{ id, date:'YYYY-MM-DD', kg?, pbf?, smm?, bfm?, vfl?, waist?, tbw?, bmr?, score? }],  // one per date, kg-based
   active: null | { … }   // in-progress workout, local only
   meta: { stateAt, months: { 'm-YYYY-MM': ms } }
 }
 ```
 
-Cloud (inside Claude only): `data/users/<uid>/state` and `data/users/<uid>/m-YYYY-MM`, last-writer-wins by `updatedAt`.
+Exercise IDs in `LIB` are permanent. Types: absent = weighted; `bodyweight` (kg = added load); `timed` (sets store `sec`).
+Cloud (inside Claude only): `data/users/<uid>/state` (settings, templates, custom, body) and `data/users/<uid>/m-YYYY-MM`, last-writer-wins by `updatedAt`.
 **Backup policy (D-015)**: import rejects broken structure or unsafe data (wrong schema, types, IDs, references) but **sanitizes** values a user could have typed. A backup exported by the app must always import.
 
 ## 7. Coding conventions
@@ -129,10 +132,10 @@ Cloud (inside Claude only): `data/users/<uid>/state` and `data/users/<uid>/m-YYY
 
 ## 12. Status and open questions
 
-- **Shipped**: v0.2.0 (see CHANGELOG and `docs/specs/functional-spec-v0.2.0.md`). Warm-up sets (`w: true`) must stay excluded from progression, PRs and stats.
+- **Shipped**: v0.3.0 (see CHANGELOG and `docs/specs/functional-spec-v0.3.0.md`). Warm-up sets (`w: true`) must stay excluded from progression, PRs and stats. Use `setScore()` / `valKey()` for anything type-dependent; never assume `reps` exists on a set.
 - **Open (do not change until the PO decides)**: definition of the "seconds per set" metric — one-tap confirmations currently record 0.1 s.
 - **Notifications (D-018)**: silent by default; do not add pop-ups or extra alerts without PO approval.
-- **Next**: edit saved sessions, bodyweight trend, CSV export, weekly review, court-to-gym rules. Implement only after a spec exists in `docs/specs/`.
+- **Next**: edit saved sessions, CSV export, weekly review, court-to-gym rules, sign-in (R1.0). Implement only after a spec exists in `docs/specs/`.
 
 ## 13. Session start prompt (for the PO to paste)
 
