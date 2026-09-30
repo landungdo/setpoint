@@ -1,0 +1,19 @@
+# Personal training data: never commit backups
+setpoint-backup-*.json
+*backup*.json
+
+# Interview notes with real people stay in Notion (private)
+interviews/
+private/
+
+# Secrets
+.env
+*.env
+*.pem
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+node_modules/
