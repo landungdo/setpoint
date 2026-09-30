@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0C1626">
 <title>Setpoint</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
 /* ---------- Tokens ---------- */
 :root{
@@ -15,8 +13,8 @@
   --ink:#0F1E33; --muted:#586A83; --court:#1D5BA6; --court-ink:#FFFFFF;
   --accent:#FFC23D; --accent-ink:#231800; --accent-text:#8A5A00;
   --good:#16865B; --warn:#B93A0B; --scrim:rgba(8,16,30,.45);
-  --font:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --num:'Barlow Condensed','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
+  --font:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans',Arial,sans-serif;
+  --num:'Arial Narrow','Roboto Condensed','Segoe UI Semibold',system-ui,sans-serif;
   --r-s:10px; --r-m:16px; --r-l:24px;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -351,7 +349,7 @@ vi:{
   po:'Chỉ số sản phẩm', poS:'Dùng để đo mục tiêu của bản MVP.', poSec:'Thời gian ghi mỗi set', poTaps:'Số chạm mỗi set', poAcc:'Gợi ý được giữ nguyên',
   poWeeks:'Tuần có từ 3 buổi', poSessions:'Tổng số buổi', poNA:'chưa có', secs:'{n} giây',
   other:'Khác', reset:'Xóa toàn bộ dữ liệu', resetQ:'Xóa toàn bộ dữ liệu trên máy này? Không thể hoàn tác.', resetDone:'Đã xóa dữ liệu',
-  version:'Setpoint 0.1, bản thử nghiệm R0.1', storageFail:'Không lưu được vào bộ nhớ trình duyệt. Hãy xuất file sao lưu ngay.', cancel:'Hủy'
+  version:'Setpoint 0.1, bản thử nghiệm R0.1', badValue:'Giá trị không hợp lệ nên đã được bỏ qua.', storageFail:'Không lưu được vào bộ nhớ trình duyệt. Hãy xuất file sao lưu ngay.', cancel:'Hủy'
 },
 en:{
   tagline:'The training log for people who lift and play racket sports.',
@@ -401,7 +399,7 @@ en:{
   po:'Product metrics', poS:'Used to measure the MVP goals.', poSec:'Time to log a set', poTaps:'Taps per set', poAcc:'Suggestions kept as-is',
   poWeeks:'Weeks with 3+ sessions', poSessions:'Total sessions', poNA:'no data', secs:'{n} s',
   other:'Other', reset:'Delete all data', resetQ:'Delete all data on this device? This cannot be undone.', resetDone:'Data deleted',
-  version:'Setpoint 0.1, R0.1 test build', storageFail:'Could not save to browser storage. Export a backup now.', cancel:'Cancel'
+  version:'Setpoint 0.1, R0.1 test build', badValue:'That value is out of range and was ignored.', storageFail:'Could not save to browser storage. Export a backup now.', cancel:'Cancel'
 }};
 const DAYS = {vi:['CN','T2','T3','T4','T5','T6','T7'], en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']};
 
@@ -490,7 +488,12 @@ function exById(id){
 }
 function exName(id){ const e = exById(id); return L() === 'vi' ? (e.vi || e.en) : (e.en || e.vi); }
 function exAlt(id){ const e = exById(id); const a = L() === 'vi' ? e.en : e.vi; return a && a !== exName(id) ? a : ''; }
-function defaultInc(id){ const e = exById(id); return e.inc || (e.low ? 5 : 2.5); }
+function defaultInc(id){
+  const e = exById(id);
+  if (!isLb()) return e.inc || (e.low ? 5 : 2.5);
+  const lb = e.inc ? (e.inc <= 1 ? 2.5 : 5) : (e.low ? 10 : 5);
+  return round2(lb / LB);
+}
 function normCfg(exId, c){
   c = c || {};
   let mn = parseInt(c.repMin, 10) || 8, mx = parseInt(c.repMax, 10) || 12;
@@ -732,6 +735,10 @@ function elapsed(startIso){
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
   return (h ? h + ':' + pad(m) : m) + ':' + pad(ss);
 }
+function logDuration(startedAt, endedAt){
+  if (!startedAt) return 0.1;
+  return Math.max(0.1, Math.round(((endedAt == null ? now() : endedAt) - startedAt) / 100) / 10);
+}
 
 /* ================= Workout ================= */
 function buildEx(exId, cfg){
@@ -762,7 +769,7 @@ function finishWorkout(){
   if (!exs.length) return;
   const end = new Date();
   const sess = {id: a.id, type: 'gym', templateId: a.templateId, name: a.name, start: a.start, tz: a.tz, end: end.toISOString(),
-    durationMin: Math.max(1, Math.round((end - new Date(a.start)) / 60000)), rpe: ui.finRpe || null, notes: (ui.finNotes || '').trim(), exercises: exs};
+    durationMin: Math.min(1440, Math.max(1, Math.round((end - new Date(a.start)) / 60000))), rpe: ui.finRpe || null, notes: (ui.finNotes || '').trim(), exercises: exs};
   S.sessions.push(sess);
   S.active = null; ui.wo = false; ui.sheet = null; ui.finRpe = null; ui.finNotes = ''; rest = null;
   touchMonth(sess.start);
@@ -1042,7 +1049,7 @@ function poRow(label, val){ return '<div class="row"><div class="row-main">' + e
 function poMetrics(){
   const sets = [];
   S.sessions.forEach(s => { if (s.type === 'gym') s.exercises.forEach(e => e.sets.forEach(x => sets.push(x))); });
-  const timed = sets.filter(x => x.logSec > 0);
+  const timed = sets.filter(x => Number.isFinite(x.logSec) && x.logSec >= 0);
   const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
   const weeks = {};
   S.sessions.forEach(s => { const d = new Date(s.start); const off = (d.getDay() + 6) % 7; const k = localKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - off)); weeks[k] = (weeks[k] || 0) + 1; });
@@ -1060,7 +1067,7 @@ function viewSheet(){
   let inner = '';
   const head = title => '<div class="sheet-head"><h2 class="h2">' + title + '</h2><button class="icon-btn" data-a="sheet-close" aria-label="' + t('close') + '">' + ICON.x + '</button></div>';
   if (ui.sheet === 'picker') {
-    inner = head(t('pickTitle')) + '<input id="pick-q" class="search" type="search" placeholder="' + esc(t('pickSearch')) + '" value="' + esc(ui.pickQ) + '" autocomplete="off">' +
+    inner = head(t('pickTitle')) + '<input id="pick-q" class="search" type="search" maxlength="100" placeholder="' + esc(t('pickSearch')) + '" value="' + esc(ui.pickQ) + '" autocomplete="off">' +
       '<div class="chips scroll mt">' + ['all'].concat(MUSCLES).map(m => '<button class="chip" data-a="pick-m" data-m="' + m + '" aria-pressed="' + (ui.pickM === m) + '">' + t('m_' + m) + '</button>').join('') + '</div>' +
       '<div id="pick-list">' + pickList() + '</div>';
   } else if (ui.sheet === 'finish') {
@@ -1070,7 +1077,7 @@ function viewSheet(){
       '<div class="stat"><b>' + fmtInt(isLb() ? vol * LB : vol) + '</b><span>' + t('finVol') + ' (' + unitLabel() + ')</span></div>' +
       '<div class="stat"><b>' + elapsed(a.start) + '</b><span>' + t('finTime') + '</span></div></div>' +
       (done.length ? '<div class="field"><span>' + t('rpeQ') + '</span><div class="chips">' + rpeChips('fin-rpe', ui.finRpe) + '</div><p class="hint">' + t('rpeHint') + '</p></div>' +
-        '<label class="field"><span>' + t('notes') + '</span><textarea id="fin-notes" placeholder="' + esc(t('notesPh')) + '">' + esc(ui.finNotes) + '</textarea></label>'
+        '<label class="field"><span>' + t('notes') + '</span><textarea id="fin-notes" maxlength="2000" placeholder="' + esc(t('notesPh')) + '">' + esc(ui.finNotes) + '</textarea></label>'
         : '<p class="hint">' + t('noSetsYet') + '</p>') +
       '<div class="sheet-actions">' + (done.length ? '<button class="btn btn-primary btn-block" data-a="fin-save">' + t('saveWorkout') + '</button>' : '') +
       '<button class="btn btn-danger btn-block" data-a="fin-discard">' + t('discardWorkout') + '</button></div>';
@@ -1127,6 +1134,98 @@ function samplePlans(){
 function ask(msg, yes, fn, no){ ui.confirm = {msg, yes, no, fn, danger: true}; ui.sheet = 'confirm'; render(); }
 
 /* ================= Export / import ================= */
+const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+const validText = (x, max) => typeof x === 'string' && x.length <= max;
+const validId = x => validText(x, 128) && /^[A-Za-z0-9._:-]+$/.test(x);
+const validNum = (x, min, max) => Number.isFinite(x) && x >= min && x <= max;
+const validIso = x => validText(x, 40) && !isNaN(new Date(x).getTime());
+/* Backup import policy (D-015): reject what breaks structure or safety,
+   sanitize what a real user could have typed, so an app-made backup always imports. */
+const cut = (x, max) => typeof x === 'string' ? x.slice(0, max) : '';
+const softNum = (x, min, max) => (Number.isFinite(x) && x >= min && x <= max) ? x : null;
+const clampNum = (x, min, max) => Math.min(max, Math.max(min, x));
+function validateBackupObject(obj){
+  if (!isObj(obj) || obj.app !== 'setpoint' || obj.schema_version !== SCHEMA || !isObj(obj.data)) return null;
+  const d = obj.data;
+  if (!isObj(d.settings) || !Array.isArray(d.templates) || !Array.isArray(d.custom) || !Array.isArray(d.sessions)) return null;
+  if (d.templates.length > 200 || d.custom.length > 1000 || d.sessions.length > 50000) return null;
+  const st = d.settings;
+  const builtinIds = new Set(LIB.map(e => e.id));
+  const custom = [], customIds = new Set();
+  for (const e of d.custom) {
+    if (!isObj(e) || !validId(e.id) || builtinIds.has(e.id) || customIds.has(e.id)) return null;
+    if (typeof e.vi !== 'string' && typeof e.en !== 'string') return null;
+    customIds.add(e.id);
+    const vi = cut(e.vi || e.en, 100), en = cut(e.en || e.vi, 100);
+    custom.push({id: e.id, vi, en, m: MUSCLES.includes(e.m) ? e.m : 'other'});
+  }
+  const exerciseIds = new Set(Array.from(builtinIds).concat(Array.from(customIds)));
+  const cfgOf = (exId, c) => {
+    const n = normCfg(exId, isObj(c) ? c : {});
+    if (!(Number.isFinite(n.inc) && n.inc > 0 && n.inc <= 500)) n.inc = defaultInc(exId);
+    return n;
+  };
+  const templates = [], templateIds = new Set();
+  for (const tp of d.templates) {
+    if (!isObj(tp) || !validId(tp.id) || templateIds.has(tp.id) || !Array.isArray(tp.exercises) || tp.exercises.length > 100) return null;
+    if (tp.exercises.some(c => !isObj(c) || !exerciseIds.has(c.exId))) return null;
+    templateIds.add(tp.id);
+    const days = Array.isArray(tp.days) ? Array.from(new Set(tp.days.filter(x => Number.isInteger(x) && x >= 0 && x <= 6))) : [];
+    templates.push({id: tp.id, name: cut(tp.name, 80).trim() || 'Plan', days,
+      exercises: tp.exercises.map(c => Object.assign({exId: c.exId}, cfgOf(c.exId, c)))});
+  }
+  const sessions = [], sessionIds = new Set();
+  for (const s of d.sessions) {
+    if (!isObj(s) || !validId(s.id) || sessionIds.has(s.id) || !['gym','court'].includes(s.type) || !validIso(s.start)) return null;
+    sessionIds.add(s.id);
+    const tz = cut(s.tz, 100) || 'UTC';
+    if (s.type === 'court') {
+      if (!Number.isFinite(s.rpe) || !Number.isFinite(s.durationMin)) return null;
+      const durationMin = Math.round(clampNum(s.durationMin, 1, 600)), rpe = Math.round(clampNum(s.rpe, 1, 10));
+      sessions.push({id: s.id, type: 'court', sport: SPORTS.some(x => x.id === s.sport) ? s.sport : 'other',
+        start: s.start, tz, durationMin, rpe, load: durationMin * rpe});
+      continue;
+    }
+    if (!Array.isArray(s.exercises) || s.exercises.length > 100) return null;
+    const exercises = [];
+    for (const e of s.exercises) {
+      if (!isObj(e) || !exerciseIds.has(e.exId) || !Array.isArray(e.sets) || e.sets.length > 100) return null;
+      const sets = [];
+      for (const x of e.sets) {
+        if (!isObj(x) || typeof x.kg !== 'number' || !Number.isFinite(x.kg) || typeof x.reps !== 'number' || !Number.isFinite(x.reps)) return null;
+        sets.push({kg: round2(clampNum(x.kg, 0, 2000)), reps: Math.round(clampNum(x.reps, 1, 10000)), pr: !!x.pr,
+          logSec: Number.isFinite(x.logSec) ? clampNum(x.logSec, 0, 86400) : 0,
+          taps: Number.isFinite(x.taps) ? Math.round(clampNum(x.taps, 0, 100000)) : 0,
+          accepted: !!x.accepted, t: validIso(x.t) ? x.t : null});
+      }
+      exercises.push({exId: e.exId, cfg: cfgOf(e.exId, e.cfg), sets});
+    }
+    const end = validIso(s.end) ? s.end : s.start;
+    const spanMin = Math.round((new Date(end) - new Date(s.start)) / 60000);
+    const rawDur = Number.isFinite(s.durationMin) ? s.durationMin : spanMin;
+    sessions.push({id: s.id, type: 'gym', templateId: validId(s.templateId) ? s.templateId : null,
+      name: cut(s.name, 80).trim() || t('freeWorkout'), start: s.start, tz, end,
+      durationMin: Math.round(clampNum(Number.isFinite(rawDur) ? rawDur : 1, 1, 1440)),
+      rpe: Number.isFinite(s.rpe) ? Math.round(clampNum(s.rpe, 1, 10)) : null,
+      notes: cut(s.notes, 2000), exercises});
+  }
+  const year = new Date().getFullYear();
+  const by = softNum(st.birthYear, 1900, year);
+  return {
+    settings: {
+      lang: ['vi','en'].includes(st.lang) ? st.lang : 'vi',
+      unit: ['kg','lb'].includes(st.unit) ? st.unit : 'kg',
+      theme: ['system','light','dark'].includes(st.theme) ? st.theme : 'system',
+      onboarded: true,
+      sports: Array.isArray(st.sports) ? Array.from(new Set(st.sports.filter(id => SPORTS.some(s => s.id === id)))) : [],
+      bodyweight: softNum(st.bodyweight, 1, 1000), height: softNum(st.height, 50, 300),
+      birthYear: by == null ? null : Math.round(by),
+      restDefault: Number.isFinite(st.restDefault) ? Math.round(clampNum(st.restDefault, 15, 600)) : 90,
+      lastBackupAt: softNum(st.lastBackupAt, 0, Number.MAX_SAFE_INTEGER)
+    },
+    templates, custom, sessions
+  };
+}
 async function doExport(){
   const payload = JSON.stringify({app: 'setpoint', schema_version: SCHEMA, exportedAt: new Date().toISOString(),
     data: {settings: S.settings, templates: S.templates, custom: S.custom, sessions: S.sessions}}, null, 2);
@@ -1157,8 +1256,8 @@ function doImport(file){
   r.onload = () => {
     let obj = null;
     try { obj = JSON.parse(r.result); } catch (e) { obj = null; }
-    const d = obj && obj.app === 'setpoint' && obj.data;
-    if (!d || !Array.isArray(d.sessions) || !Array.isArray(d.templates)) { toast(t('importBad')); return; }
+    const d = validateBackupObject(obj);
+    if (!d) { toast(t('importBad')); return; }
     ask(t('importQ', {n: d.sessions.length}), t('replace'), () => {
       const next = migrate({settings: Object.assign({}, d.settings || {}, {onboarded: true}), templates: d.templates, custom: d.custom || [], sessions: d.sessions});
       next.meta.stateAt = now();
@@ -1219,7 +1318,7 @@ const A = {
     if (!st.reps) { toast(t('needReps')); return; }
     if (st.kg == null || isNaN(st.kg)) st.kg = 0;
     st.done = true; st.doneAt = new Date().toISOString();
-    st.logSec = st.t0 ? Math.round((now() - st.t0) / 100) / 10 : 0;
+    st.logSec = logDuration(st.t0);
     st.taps = (st.taps || 0) + 1;
     st.accepted = st.sugKg != null && Math.abs((st.kg || 0) - (st.sugKg || 0)) < 1e-6 && st.reps === st.sugReps;
     st.pr = isPR(ex, si);
@@ -1240,7 +1339,7 @@ const A = {
     const p = parseQuick(input && input.value);
     if (!p) { refreshQePreview(ei, (input && input.value) || ' '); if (input) input.focus(); return; }
     const ex = S.active.exercises[ei];
-    const t0 = ui.qeT0[ei] || now(); const per = Math.round((now() - t0) / 100 / p.length) / 10;
+    const t0 = ui.qeT0[ei] || now(); const per = Math.max(0.1, Math.round((now() - t0) / 100 / p.length) / 10);
     const kept = ex.sets.filter(s => s.done);
     const added = p.map(x => ({kg: round2(fromDisp(x.w) || 0), reps: x.r, sugKg: null, sugReps: null, done: true, doneAt: new Date().toISOString(), t0, taps: 1, logSec: per, accepted: false, pr: false}));
     ex.sets = kept.concat(added);
@@ -1296,7 +1395,7 @@ const A = {
   'pick-m': el => { ui.pickM = el.dataset.m; document.querySelectorAll('[data-a="pick-m"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === ui.pickM))); $('#pick-list').innerHTML = pickList(); },
   'pick-ex': el => addPicked(el.dataset.id),
   'pick-new': () => {
-    const name = ui.pickQ.trim(); if (!name) return;
+    const name = ui.pickQ.trim().slice(0, 100); if (!name) return;
     const e = {id: 'c_' + uid().slice(0, 8), vi: name, en: name, m: ui.pickM === 'all' ? 'other' : ui.pickM};
     S.custom.push(e); touchState(); addPicked(e.id);
   },
@@ -1339,7 +1438,7 @@ document.addEventListener('input', ev => {
   const el = ev.target, ds = el.dataset || {};
   if (ds.in && S.active) {
     const {st} = activeSet(el); if (st.done) return;
-    if (ds.in === 'kg') st.kg = fromDisp(el.value); else { const n = parseInt(el.value, 10); st.reps = isNaN(n) ? null : n; }
+    if (ds.in === 'kg') { const v = fromDisp(el.value); st.kg = v == null ? null : Math.max(0, v); } else { const n = parseInt(el.value, 10); st.reps = isNaN(n) ? null : n; }
     persist(); return;
   }
   if (ds.qe != null) { refreshQePreview(ds.qe, el.value); return; }
@@ -1364,8 +1463,11 @@ document.addEventListener('change', ev => {
   const el = ev.target, ds = el.dataset || {};
   if (ds.set) {
     const f = ds.set;
-    if (f === 'bodyweight') { const v = fromDisp(el.value); S.settings.bodyweight = v && v > 0 ? round2(v) : null; }
-    else { const n = parseInt(el.value, 10); S.settings[f] = isNaN(n) ? null : n; }
+    const range = {bodyweight: [1, 1000], height: [50, 300], birthYear: [1900, new Date().getFullYear()]}[f];
+    const raw = f === 'bodyweight' ? fromDisp(el.value) : parseInt(el.value, 10);
+    const ok = raw != null && Number.isFinite(raw) && raw >= range[0] && raw <= range[1];
+    if (String(el.value).trim() && !ok) { el.value = ''; toast(t('badValue')); }
+    S.settings[f] = ok ? (f === 'bodyweight' ? round2(raw) : raw) : null;
     touchState(); return;
   }
   if (ds.import != null && el.files && el.files[0]) { doImport(el.files[0]); el.value = ''; }
@@ -1377,6 +1479,20 @@ document.addEventListener('keydown', ev => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderRest(); const c = document.getElementById('wo-clock'); if (c && S.active) c.textContent = elapsed(S.active.start); } });
 
 /* ================= Boot ================= */
+if (window.__SETPOINT_TEST__) {
+  window.SetpointTest = {
+    parseQuick,
+    validateBackupObject,
+    logDuration,
+    defaultIncrement(id, unit){
+      const old = S.settings.unit; S.settings.unit = unit;
+      const value = defaultInc(id) * (unit === 'lb' ? LB : 1);
+      S.settings.unit = old;
+      return value;
+    }
+  };
+  return;
+}
 S = load();
 if (S.active) ensureTick();
 render();

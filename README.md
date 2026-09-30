@@ -5,7 +5,7 @@
 
 Setpoint connects the gym, the court and the plate in one weekly rhythm: one-tap set logging with progression suggestions, court sessions (pickleball, badminton, tennis, padel) counted as training load, and — in upcoming releases — nutrition based on the food people actually eat.
 
-> **Status:** `v0.1.0` — R0.1 MVP, self-testing (dogfooding) and Phase 0 user interviews in progress.
+> **Status:** `v0.1.1` — hardened R0.1 MVP, dogfooding and Phase 0 user interviews in progress.
 > **Name:** "Setpoint" is a working name pending trademark checks.
 
 ---
@@ -13,11 +13,11 @@ Setpoint connects the gym, the court and the plate in one weekly rhythm: one-tap
 ## Try it
 
 - **Live app:** `https://<your-github-username>.github.io/setpoint/app/` *(after GitHub Pages is enabled)*
-- **Locally:** download the repo and open `app/index.html` in a browser. No build step, no dependencies.
+- **Locally:** download the repo and open `app/index.html` in a browser. No build step or runtime dependencies.
 
 On iPhone, open the link in Safari → Share → *Add to Home Screen* for an app-like experience.
 
-## What v0.1 does
+## What v0.1.1 does
 
 | Area | Features |
 |---|---|
@@ -42,7 +42,7 @@ People who combine lifting with racket sports juggle two or three apps, and none
 | [PO Masterplan v2.0](docs/masterplan/Setpoint_PO_Masterplan_v2.0.md) | Vision, research, positioning, scope, roadmap, risks (Vietnamese) |
 | [Decision Log](docs/decisions/decision-log.md) | Every product decision with rationale |
 | [Specs](docs/specs/) | Functional and technical specifications |
-| [AGENTS.md](AGENTS.md) | Rules for AI coding agents working in this repo |
+| [AGENTS.md](AGENTS.md) | Operating manual for AI coding agents |
 | [Masterplan v1.0 (archive)](docs/masterplan/archive/PO_Masterplan_v1.0.md) | Pre-pivot baseline |
 
 ## Roadmap
@@ -57,10 +57,10 @@ People who combine lifting with racket sports juggle two or three apps, and none
 
 ## Tech
 
-- Single self-contained HTML file, vanilla JavaScript, no framework, no build.
-- Local-first storage (`localStorage`), works offline.
+- Single self-contained runtime HTML file, vanilla JavaScript, no framework and no build.
+- Local-first storage (`localStorage`); core logging and system fonts work without a network.
 - Optional private cloud backup through the Claude artifact runtime when available; falls back to local-only elsewhere.
-- Fonts: Be Vietnam Pro, Barlow Condensed (Google Fonts).
+- Automated logic tests use the built-in Node.js test runner: `npm test` (Node 18+).
 
 ## Data & privacy
 

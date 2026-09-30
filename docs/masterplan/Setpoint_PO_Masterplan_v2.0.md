@@ -492,7 +492,7 @@ Toàn bộ là **gợi ý tham khảo**, không phải chẩn đoán y khoa hay 
 
 ### 10.2 Quốc tế hóa (bắt buộc từ MVP)
 
-- Không viết cứng chuỗi; file ngôn ngữ `vi.json`, `en.json`; chuẩn ICU cho số nhiều.
+- Không viết cứng chuỗi; dùng từ điển i18n theo khóa (đặt inline trong prototype một-file, tách thành `vi.json` và `en.json` khi chuyển sang PWA); hỗ trợ số nhiều theo ngôn ngữ.
 - Giao diện chừa chỗ cho câu dài hơn ~30%; CSS thuộc tính logic (sẵn sàng RTL).
 - Dữ liệu lưu theo ID, tên hiển thị theo ngôn ngữ (bài tập, món ăn, môn thể thao).
 - Lưu nội bộ theo hệ mét; hiển thị lb/dặm/ft-in/kJ theo lựa chọn; bước tăng tạ đổi theo đơn vị.
