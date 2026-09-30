@@ -1,126 +1,142 @@
 # AGENTS.md — Setpoint
 
-Instructions for any AI coding agent (Codex, Cursor, Grok, Qwen, Claude Code…) working in this repo.
-**Read this whole file before changing anything.**
+Operating manual for every AI coding agent (Codex, Cursor, Claude Code, Grok, Qwen, …) working in this repository.
+**Read the whole file before doing anything.** If an instruction here conflicts with a request, stop and ask.
 
 ## 1. Product in one paragraph
 
-Setpoint is a mobile-first training log for people who lift **and** play racket sports (pickleball, badminton, tennis, padel). Core loop: one-tap set logging with double-progression suggestions, court sessions counted as training load, weekly review. Asia first (Vietnam), global later. Bilingual Vietnamese / English. Current version: **v0.1.0 (R0.1 MVP)**.
-Product intent: `docs/masterplan/Setpoint_PO_Masterplan_v2.0.md` · Decisions: `docs/decisions/decision-log.md` · Specs: `docs/specs/`.
+Setpoint is a mobile-first training log for people who lift **and** play racket sports (pickleball, badminton, tennis, padel). Core loop: one-tap set logging with double-progression suggestions, court sessions counted as training load, weekly review. Asia first (Vietnam), global later. Bilingual Vietnamese / English. Current version: **v0.1.1**.
+Intent: `docs/masterplan/` · Decisions: `docs/decisions/decision-log.md` · Shipped behaviour: `docs/specs/`.
 
-## 2. Roles — who decides what
+## 2. Roles
 
-| Role | Who | Responsibility |
+| Role | Who | Does |
 |---|---|---|
-| Product Owner | Darren (human) | Priorities, acceptance, final decisions |
-| PO advisor / architect | Claude (outside this repo) | Specs, architecture, review of danger-zone changes |
-| Implementer | **You, the coding agent** | Implement specified stories, fix bugs, UI work |
+| Product Owner | Darren (human) | Priorities, acceptance, merges, final decisions |
+| PO advisor / architect | Claude (outside the repo) | Specs, architecture, danger-zone reviews |
+| Implementer | **You** | Implement specified stories and bugs, write tests, open PRs |
 
-**You implement; you do not redesign.** If a task requires a decision that is not in a spec, stop and ask.
+You implement; you do not redesign. You may **propose** decisions (record them as `Provisional`); only the PO makes them `Final`.
 
-## 3. Danger zones — STOP and ask the PO before changing
+## 3. Stop and ask before touching
 
-1. **Data schema** — the shape of `S` (see §6), the `localStorage` key, or any stored field. Any change needs a written migration in `migrate()` and PO approval.
-2. **Sync** — `Cloud`, `initCloud()`, `touchState()`, `touchMonth()`, `retireMonths()`, document paths.
-3. **Progression logic** — `suggest()`, `isPR()`, `e1rm()`, `bestE1()`, `normCfg()`.
-4. **Backup format** — `doExport()` / `doImport()` and `schema_version`.
-5. **Architecture** — adding a framework, build step, npm dependency, new external host, or splitting the single file.
+**Danger zones** — explain the change and the risk, then wait for the PO's explicit OK:
+1. **Data schema**: the shape of `S`, the `localStorage` key, any stored field. Changes need a migration in `migrate()`.
+2. **Sync**: `Cloud`, `initCloud()`, `touchState()`, `touchMonth()`, `retireMonths()`, document paths.
+3. **Progression**: `suggest()`, `isPR()`, `e1rm()`, `bestE1()`, `normCfg()`, `defaultInc()`.
+4. **Backup**: `doExport()`, `doImport()`, `validateBackupObject()`, `schema_version`.
+5. **Architecture**: frameworks, build steps, runtime dependencies, external hosts, splitting the single file.
+6. **Product metrics**: how `logSec`, `taps`, `accepted` are measured or reported.
 
-Explain the proposed change and its risk, then wait. Never "fix" these as a side effect of another task.
+**Protected files** — never delete, rename or empty: `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`. Do not edit `docs/masterplan/` or change the status of existing decisions unless asked.
+
+Never "fix" a danger zone as a side effect of another task.
 
 ## 4. Repo map
 
 ```
-app/index.html        ← the entire app (HTML + CSS + JS in one file)
-index.html            ← redirect to app/ (GitHub Pages)
-.nojekyll             ← keep; disables Jekyll on Pages
-docs/masterplan/      ← product strategy (do not edit unless asked)
-docs/decisions/       ← decision log (append only, when asked)
-docs/specs/           ← functional/technical specs (source of truth for behaviour)
-CHANGELOG.md          ← update under "Unreleased" with every change
+app/index.html         the entire runtime app (HTML + CSS + JS)
+index.html, .nojekyll  GitHub Pages entry (keep both)
+tests/*.test.mjs       logic tests (Node built-in test runner)
+package.json           dev-only: exposes `npm test`; must keep zero dependencies
+docs/specs/            functional spec + technical README (update when behaviour changes)
+docs/decisions/        decision log (append; new entries Provisional)
+docs/masterplan/       product strategy (read-only for agents)
+CHANGELOG.md           every change goes under ## [Unreleased]
 ```
 
-## 5. Technical constraints (non-negotiable)
+## 5. Technical constraints
 
-- **One self-contained file**: `app/index.html`. Vanilla JavaScript inside a single IIFE. No framework, no bundler, no npm packages.
-- **External resources**: only Google Fonts (Be Vietnam Pro, Barlow Condensed). No other network requests, no remote images, no CDN scripts unless the PO approves.
-- **Two runtimes must both work**:
-  - Inside Claude (published artifact): `window.claude.use('db' | 'user' | 'downloads')` may resolve to a namespace.
-  - Anywhere else (GitHub Pages, local file): `window.claude` is `undefined`. Every capability must degrade gracefully.
-- **Storage**: `localStorage` key `setpoint.v1`, always wrapped in try/catch. Weights are **always stored in kg**; convert only for display (`dispW`, `fromDisp`).
-- **Time**: store ISO timestamps in UTC plus `tz`. Display with `Intl` in the user's locale.
-- **Mobile first**: design at 375 px width, tap targets ≥ 44 px, respect `env(safe-area-inset-*)`, one-hand use during a workout.
-- **Offline first**: logging must work with no network.
+- **Runtime = one self-contained file**, vanilla JS in one IIFE. No framework, bundler or runtime package.
+- **No external runtime requests**: system fonts only (brand fonts will be self-hosted at R1.0 — do not re-add Google Fonts), no CDNs, no remote images.
+- **Two runtimes**: inside Claude, `window.claude.use('db'|'user'|'downloads')` may resolve; elsewhere `window.claude` is undefined. Everything must degrade gracefully.
+- **Storage**: `localStorage` key `setpoint.v1`, always in try/catch. Weights stored in **kg**; convert only for display.
+- **Time**: ISO UTC + `tz`; display with `Intl`.
+- **Mobile first**: 375 px, tap targets ≥ 44 px, safe areas, one-hand use.
+- **Offline first**: logging works with no network.
+- **Test hook**: `window.__SETPOINT_TEST__` exposes `window.SetpointTest` and skips boot. Keep it working.
 
-## 6. Data model (as built in v0.1.0)
+## 6. Data model (v0.1.1)
 
 ```js
 S = {
   v: 1,
-  settings: { lang: 'vi'|'en', unit: 'kg'|'lb', theme: 'system'|'light'|'dark', onboarded, sports: [sportId],
-              bodyweight /*kg*/, height, birthYear, restDefault /*s*/, lastBackupAt /*ms*/ },
-  templates: [{ id, name, days: [0-6 /*0=Sun*/], exercises: [{ exId, sets, repMin, repMax, inc /*kg*/, rest /*s*/ }] }],
-  custom:    [{ id: 'c_…', vi, en, m /*muscle*/ }],
+  settings: { lang, unit, theme, onboarded, sports: [id], bodyweight /*kg*/, height, birthYear, restDefault /*s*/, lastBackupAt /*ms*/ },
+  templates: [{ id, name, days: [0-6], exercises: [{ exId, sets, repMin, repMax, inc /*kg*/, rest /*s*/ }] }],
+  custom:    [{ id: 'c_…', vi, en, m }],
   sessions: [
-    { id, type: 'gym', templateId, name, start, tz, end, durationMin, rpe, notes,
+    { id, type:'gym', templateId, name, start, tz, end, durationMin /*1–1440*/, rpe, notes /*≤2000*/,
       exercises: [{ exId, cfg, sets: [{ kg, reps, pr, logSec, taps, accepted, t }] }] },
-    { id, type: 'court', sport, start, tz, durationMin, rpe, load /* = durationMin × rpe */ }
+    { id, type:'court', sport, start, tz, durationMin /*1–600*/, rpe, load /* = durationMin × rpe */ }
   ],
-  active: null | { …in-progress workout, local only, never synced },
-  meta: { stateAt /*ms*/, months: { 'm-YYYY-MM': ms } }
+  active: null | { … }   // in-progress workout, local only
+  meta: { stateAt, months: { 'm-YYYY-MM': ms } }
 }
 ```
 
-Cloud backup (inside Claude only): private docs `data/users/<uid>/state` and `data/users/<uid>/m-YYYY-MM`, last-writer-wins by `updatedAt`. Month key uses the UTC month of `start`.
+Cloud (inside Claude only): `data/users/<uid>/state` and `data/users/<uid>/m-YYYY-MM`, last-writer-wins by `updatedAt`.
+**Backup policy (D-015)**: import rejects broken structure or unsafe data (wrong schema, types, IDs, references) but **sanitizes** values a user could have typed. A backup exported by the app must always import.
 
 ## 7. Coding conventions
 
-- **i18n**: every visible string goes through `t(key, vars)` / `tn(key, n, vars)`. Add the key to **both** `T.vi` and `T.en`. Vietnamese UI addresses the user as "bạn". Sentence case, plain verbs, no exclamation-heavy copy.
-- **Escaping**: any user-provided text rendered into HTML must pass through `esc()`.
-- **Events**: use `data-a="action"` + a handler in the `A` map (event delegation). No inline `onclick`.
-- **State changes**: mutate `S`, then call `touchState()` (settings/templates/custom) or `touchMonth(session.start)` (sessions), or `persist()` for `active`. Never write storage inside render functions.
-- **Styling**: use the CSS custom properties (`--bg`, `--surface`, `--ink`, `--accent`, `--court`, …). Both light and dark themes must stay legible.
-- **Scope**: change only what the task needs. Do not reformat, rename or reorder unrelated code.
+- Every visible string via `t()` / `tn()`, with keys in **both** `T.vi` and `T.en`. Vietnamese addresses the user as "bạn". Sentence case.
+- Escape user text with `esc()`. Validate inputs where they are entered, not only on import.
+- Events: `data-a` + a handler in `A`. No inline handlers.
+- After mutating `S`: `touchState()` (settings/templates/custom), `touchMonth(start)` (sessions), `persist()` (active). Never write storage during render.
+- Use the CSS custom properties; keep light and dark themes legible.
+- Change only what the task needs. No mass reformatting or renaming.
 
-## 8. Workflow
+## 8. Git workflow
 
-1. Confirm the task maps to a story or bug with acceptance criteria. If not, ask.
-2. Make small, reviewable diffs. One story per commit.
-3. Commit messages: Conventional Commits — `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `chore:` — and include the Jira key when one exists (e.g. `feat(SP-21): bodyweight logging`).
-4. Add a line to `CHANGELOG.md` under `## [Unreleased]`.
-5. Summarise what changed, what to test, and any risk.
+1. Start from the latest main: `git fetch && git checkout main && git pull`. Discard stale local work first.
+2. Branch: `codex/<short-task>` (or `<agent>/<short-task>`). **Never commit or push to main.**
+3. Small commits, Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`), Jira key when available.
+4. Run `npm test` and the smoke test (§11) before pushing.
+5. Push the branch and open a **Pull Request** using the template in §9. The PO reviews and merges.
 
-## 9. Definition of Done
-
-- [ ] Works on iPhone Safari at 375 px, portrait.
-- [ ] Works offline and with `window.claude` undefined.
-- [ ] Every new string exists in both Vietnamese and English.
-- [ ] Existing data still loads (no schema change without approved migration).
-- [ ] No console errors.
-- [ ] CHANGELOG updated.
-- [ ] Acceptance criteria of the story are met.
-
-## 10. Manual smoke test (run before every commit)
-
-1. Fresh start (clear `localStorage`) → onboarding → add sample plans.
-2. Start a workout → confirm a set → rest timer appears → quick entry `40x10x3` logs 3 sets.
-3. Finish with RPE → session appears in History.
-4. Start the same plan again → "Last time" and suggestion are shown.
-5. Log a court session → appears in History and in the week strip.
-6. Switch language and unit → no missing strings, weights convert correctly.
-7. Export backup → import it back → data identical.
-
-## 11. Current status
-
-- **Done**: R0.1 (see `CHANGELOG.md`).
-- **Next**: R0.2 — progression charts, weekly review, bodyweight, CSV export. **Do not implement R0.2 features until their spec exists in `docs/specs/`.**
-
-## 12. Session start prompt (for the human to paste)
+## 9. Pull Request description (also add a short entry under `## [Unreleased]` in CHANGELOG.md)
 
 ```
-Read AGENTS.md fully before doing anything. Constraints: single file app/index.html,
-vanilla JS, no frameworks or new dependencies, every string in both vi and en,
-weights stored in kg. Do not touch the danger zones in §3 without asking me.
-Today's task: <story / bug + acceptance criteria>.
-First, tell me your plan and which functions you will change. Wait for my OK.
+## What changed (user-facing)
+## Functions / files touched
+## Danger zone touched: no | yes → which, and why
+## How it was tested (npm test result + manual steps)
+## Screenshots (UI changes, 375 px)
+## Open questions for the PO
+```
+
+## 10. Definition of Done
+
+- [ ] `npm test` passes; new logic has tests.
+- [ ] Works on iPhone Safari at 375 px and with `window.claude` undefined.
+- [ ] Every new string exists in Vietnamese and English.
+- [ ] Existing data loads; an exported backup re-imports.
+- [ ] No console errors. No protected file deleted.
+- [ ] CHANGELOG and, if behaviour changed, `docs/specs/` updated.
+- [ ] Acceptance criteria met; PR opened with the §9 template.
+
+## 11. Manual smoke test
+
+1. Clear `localStorage` → onboarding → add sample plans.
+2. Start a workout → confirm a set → rest timer shows → quick entry `40x10x3` logs 3 sets.
+3. Finish with RPE → appears in History.
+4. Start the same plan → "Last time" and a suggestion appear.
+5. Log a court session → History and week strip.
+6. Switch language and unit → no missing strings; weights convert.
+7. Export backup → import it → data identical.
+
+## 12. Status and open questions
+
+- **Shipped**: v0.1.1 (see CHANGELOG).
+- **Open (do not change until the PO decides)**: definition of the "seconds per set" metric — one-tap confirmations currently record 0.1 s.
+- **Next**: R0.2 (progression charts, weekly review, bodyweight, CSV). Implement only after its spec exists in `docs/specs/`.
+
+## 13. Session start prompt (for the PO to paste)
+
+```
+Read AGENTS.md fully. Start from the latest main on a new branch codex/<task>.
+Constraints: single file app/index.html, no dependencies, vi + en strings, kg storage,
+never delete AGENTS.md/CLAUDE.md/.cursor, never push to main.
+Task: <story or bug + acceptance criteria>.
+First reply with your plan: functions you will change and whether any danger zone (§3) is touched. Wait for my OK.
 ```

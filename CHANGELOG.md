@@ -4,8 +4,19 @@ All notable changes to Setpoint are documented here. Versions follow [Semantic V
 
 ## [Unreleased]
 
+## [0.1.1] – 2026-09-30 — R0.1 hardening
+
+### Fixed
+- One-tap confirmations now contribute to the seconds-per-set metric instead of being excluded.
+- Default increments in lb mode are 5 lb for standard lifts, 10 lb for heavy/lower-body lifts and 2.5 lb for small isolation exercises.
+- Removed the Google Fonts runtime dependency so the complete logging interface remains available offline.
+- Backup import rejects broken structure or unsafe data (schema version, types, identifiers, references, duplicates, collection limits) and sanitizes user-typed values instead of rejecting the whole file, so a backup exported by the app always imports (D-015).
+- Input guards: notes limited to 2,000 characters, custom exercise names to 100, out-of-range body stats are ignored with a message, negative weights are not accepted, a workout finished the next day is capped at 24 hours.
+
 ### Added
-- `AGENTS.md`, `CLAUDE.md` and Cursor rules: instructions and guardrails for AI coding agents.
+- Dependency-free automated logic tests using the built-in Node.js test runner.
+- As-built functional specification and technical README.
+- AGENTS.md v2: Pull Request workflow, protected files, test requirement, PR handoff template.
 
 ## [0.1.0] – 2026-09-29 — R0.1 "Sổ tập" (MVP)
 

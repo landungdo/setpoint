@@ -3,4 +3,4 @@ description: Setpoint project rules
 alwaysApply: true
 ---
 
-Follow AGENTS.md at the repository root for every task. Key rules: the app is the single file app/index.html (vanilla JS, no frameworks, no new dependencies); every UI string must exist in both Vietnamese and English; weights are stored in kg; never change the data schema, sync, progression logic or backup format without asking the Product Owner first.
+Follow AGENTS.md at the repository root for every task. Never push to main: work on a branch and open a Pull Request. The runtime app is the single file app/index.html (vanilla JS, no frameworks, no runtime dependencies). Every UI string must exist in Vietnamese and English. Weights are stored in kg. Never change the data schema, sync, progression logic or backup format without the Product Owner's approval. Never delete AGENTS.md, CLAUDE.md or .cursor/rules. Run `npm test` before every commit.
