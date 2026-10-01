@@ -39,6 +39,20 @@ test('library: about 100 unique exercises, every v0.2 id kept, valid fields', ()
   lib.forEach(e => { assert.ok(e.vi && e.en, e.id); assert.ok(muscles.includes(e.m), e.id); assert.ok(e.type == null || ['bodyweight','timed'].includes(e.type), e.id); });
 });
 
+test('workout removes the selected unconfirmed set, not just the last one', () => {
+  const ex = { sets: [
+    { id: 'warmup', w: true, done: false },
+    { id: 'middle', done: false },
+    { id: 'last', done: false }
+  ] };
+  assert.equal(api.removeSetAt(ex, 1), true);
+  eq(ex.sets.map(s => s.id), ['warmup', 'last']);
+  ex.sets[0].done = true;
+  assert.equal(api.removeSetAt(ex, 0), false, 'confirmed sets must be undone first');
+  assert.equal(api.removeSetAt(ex, 1), true);
+  assert.equal(api.removeSetAt(ex, 0), false, 'an exercise must keep at least one set');
+});
+
 test('migrate: plank sets stored as reps (v0.2) become seconds, idempotently', () => {
   state([gym(3, 'plank', [set(0, 45), set(0, 40)])]);
   const s1 = api.getState().sessions[0].exercises[0].sets;
@@ -150,4 +164,85 @@ test('an exported v0.3 state re-imports unchanged in its v0.3 fields', () => {
   eq(r.settings.dayPlans, S.settings.dayPlans);
   eq(r.settings.hiddenEx, ['bench']);
   assert.equal(r.sessions.find(s => s.exercises[0].exId === 'plank').exercises[0].sets[0].sec, 50);
+});
+
+test('saved gym edit preserves identity and metrics, then rebuilds later PRs', () => {
+  const first = gym(3, 'bench', [set(80, 5)], { tpl: 't1', name: 'Push' });
+  first.exercises[0].sets[0].accepted = true;
+  const second = gym(2, 'bench', [set(85, 5)], { name: 'Upper' });
+  second.exercises[0].sets[0].pr = true;
+  state([first, second]);
+  const draft = api.sessionDraft(api.getState().sessions[0]);
+  draft.name = 'Push corrected'; draft.durationMin = 75; draft.rpe = 9; draft.notes = 'Corrected log';
+  draft.exercises[0].sets[0].kg = 90;
+  const result = api.applySessionEdit(draft);
+  assert.equal(result.error, undefined);
+  const edited = api.getState().sessions.find(s => s.id === first.id);
+  assert.equal(edited.id, first.id);
+  assert.equal(edited.templateId, 't1');
+  assert.equal(edited.name, 'Push corrected');
+  assert.equal(edited.durationMin, 75);
+  assert.equal((new Date(edited.end) - new Date(edited.start)) / 60000, 75);
+  assert.equal(edited.exercises[0].sets[0].accepted, true);
+  assert.equal(edited.exercises[0].sets[0].pr, false, 'earliest performance is the baseline');
+  assert.equal(api.getState().sessions.find(s => s.id === second.id).exercises[0].sets[0].pr, false, 'later stale PR is cleared');
+  assert.equal('date' in edited, false);
+  assert.equal('_originalStart' in edited, false);
+  const S = api.getState();
+  assert.ok(api.validateBackupObject(backup({ settings: S.settings, templates: S.templates, custom: S.custom, sessions: S.sessions, body: S.body })));
+});
+
+test('historical record rebuild is chronological and type-aware', () => {
+  const p1 = gym(4, 'plank', [set(0, 120, 'sec'), set(0, 45, 'sec')]);
+  p1.exercises[0].sets[0].w = true; p1.exercises[0].sets[0].pr = true; p1.exercises[0].sets[1].pr = true;
+  const p2 = gym(3, 'plank', [set(0, 50, 'sec')]);
+  const b1 = gym(2, 'pullup', [set(0, 8)]), b2 = gym(1, 'pullup', [set(0, 10)]);
+  state([p2, b2, p1, b1]);
+  const changed = api.recalculateRecords();
+  assert.ok(changed.length >= 1);
+  assert.equal(p1.exercises[0].sets[0].pr, false, 'warm-up cannot be a record');
+  assert.equal(p1.exercises[0].sets[1].pr, false, 'first timed set is the baseline');
+  assert.equal(p2.exercises[0].sets[0].pr, true, 'later longest hold earns PR');
+  assert.equal(b1.exercises[0].sets[0].prRep, undefined);
+  assert.equal(b2.exercises[0].sets[0].pr, false, 'bodyweight never earns e1RM PR');
+  assert.equal(b2.exercises[0].sets[0].prRep, true, 'bodyweight earns a chronological rep PR');
+});
+
+test('saved court edit recalculates load; invalid and active-workout edits are atomic', () => {
+  const court = { id: 'court-edit', type: 'court', sport: 'pickleball', start: iso(1), tz: 'UTC', durationMin: 60, rpe: 6, load: 360 };
+  state([court]);
+  const draft = api.sessionDraft(api.getState().sessions[0]);
+  draft.sport = 'tennis'; draft.durationMin = 90; draft.rpe = 8;
+  const result = api.applySessionEdit(draft);
+  assert.equal(result.error, undefined);
+  const edited = api.getState().sessions[0];
+  assert.equal(edited.id, court.id);
+  assert.equal(edited.sport, 'tennis');
+  assert.equal(edited.load, 720);
+
+  const bad = api.sessionDraft(edited), before = plain(api.getState().sessions);
+  bad.durationMin = 0;
+  assert.equal(api.applySessionEdit(bad).error, 'badSessionValue');
+  eq(api.getState().sessions, before);
+
+  state([court], {}, [], { active: { id: 'active', exercises: [] } });
+  const blocked = api.sessionDraft(api.getState().sessions[0]);
+  blocked.rpe = 10;
+  assert.equal(api.applySessionEdit(blocked).error, 'editWhileActive');
+  assert.equal(api.getState().sessions[0].rpe, 6);
+});
+
+test('moving a saved gym session shifts set timestamps and reports both sync months', () => {
+  const old = gym(40, 'squat', [set(100, 5)]);
+  old.exercises[0].sets[0].t = old.start;
+  state([old]);
+  const draft = api.sessionDraft(api.getState().sessions[0]), target = new Date(Date.now() - DAY);
+  draft.date = dkey(target); draft.time = '00:01';
+  const result = api.applySessionEdit(draft);
+  assert.equal(result.error, undefined);
+  const moved = api.getState().sessions[0];
+  assert.notEqual(moved.start, old.start);
+  assert.equal(moved.exercises[0].sets[0].t, moved.start);
+  assert.ok(result.months.includes('m-' + old.start.slice(0, 7)));
+  assert.ok(result.months.includes('m-' + moved.start.slice(0, 7)));
 });

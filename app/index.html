@@ -161,7 +161,7 @@ h1,h2,h3,p{margin:0}
 .ex-last{font-size:14px;color:var(--muted);margin-top:8px}
 .ex-last b{font-family:var(--num);font-size:18px;font-weight:600;color:var(--ink);letter-spacing:.01em}
 .ex-why{font-size:13px;color:var(--accent-text);margin-top:2px;font-weight:500}
-.set{display:grid;grid-template-columns:30px 1fr 1fr 52px;gap:6px;align-items:center;padding:6px 0}
+.set{display:grid;grid-template-columns:30px minmax(0,1fr) minmax(0,1fr) 52px 44px;gap:6px;align-items:center;padding:6px 0}
 .set.head{padding:10px 0 0;font-size:12px;color:var(--muted);text-align:center;font-weight:600}
 .set-no{font-family:var(--num);font-size:20px;font-weight:600;color:var(--muted);text-align:center;line-height:1}
 .pr{display:block;font-family:var(--font);font-size:10px;font-weight:700;color:var(--good);margin-top:2px}
@@ -173,6 +173,10 @@ h1,h2,h3,p{margin:0}
 .num::-webkit-outer-spin-button,.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .check{height:54px;border-radius:12px;border:2px solid var(--line);display:grid;place-items:center;color:var(--muted)}
 .check svg{width:24px;height:24px}
+.set-remove{width:44px;height:54px;border-radius:12px;display:grid;place-items:center;color:var(--muted)}
+.set-remove svg{width:20px;height:20px}
+.set-remove:not(:disabled):active{background:var(--surface-2);color:var(--bad)}
+.set-remove:disabled{opacity:.22}
 .set.done .check{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .set.done .stepper{background:transparent}
 .set.done .stepper button{visibility:hidden}
@@ -219,6 +223,23 @@ h1,h2,h3,p{margin:0}
 .sess-ex{padding:6px 0;border-top:1px solid var(--line)}
 .sess-ex b{font-weight:600}
 .sess-ex span{display:block;font-family:var(--num);font-size:18px;color:var(--muted)}
+.sess-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.se-datetime{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:10px;margin-top:16px}
+.se-datetime .mini span{min-height:0;font-size:13px;font-weight:600}
+.se-datetime .mini input{padding:0 8px;font-family:var(--font);font-size:16px;font-weight:500;background:var(--surface)}
+.se-ex{border:1px solid var(--line);border-radius:var(--r-m);padding:12px;margin-top:12px;background:var(--surface-2)}
+.se-ex-top{display:flex;align-items:center;gap:8px}
+.se-ex-top b{flex:1;min-width:0}
+.se-set-head,.se-set{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;align-items:center}
+.se-set-head{font-size:11px;font-weight:600;color:var(--muted);text-align:center;margin-top:10px}
+.se-set{margin-top:6px}
+.se-kind{width:44px;height:48px;border-radius:12px;border:1px solid var(--line);font-family:var(--num);font-size:18px;font-weight:650;color:var(--muted)}
+.se-kind[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 18%,var(--surface));color:var(--accent-text);border-color:color-mix(in srgb,var(--accent) 65%,var(--line))}
+.se-input{width:100%;min-width:0;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface);text-align:center;font-family:var(--num);font-size:21px;font-weight:650;padding:0 4px}
+.se-set .icon-btn{border-radius:12px;color:var(--muted)}
+.se-set .icon-btn:not(:disabled):active{background:var(--surface);color:var(--bad)}
+.se-set .icon-btn:disabled{opacity:.22}
+.se-add{margin-top:8px;min-height:44px}
 
 /* ---------- Editor ---------- */
 .ed-ex{padding:14px 16px;border-bottom:1px solid var(--line)}
@@ -605,7 +626,7 @@ vi:{
   backupT:'Đã hơn 7 ngày chưa sao lưu', backupS:'Dữ liệu đang nằm trên máy này. Xuất một file sao lưu để không mất lịch sử tập.', backupNow:'Xuất file sao lưu',
   finish:'Kết thúc', minimize:'Thu nhỏ', lastTime:'Lần trước:', firstTime:'Lần đầu tập bài này. Nhập mức tạ bạn định dùng.',
   whyNew:'Chưa có dữ liệu để gợi ý.', whyUp:'Lần trước đạt đủ rep. Tăng lên {to}.', whyHold:'Giữ {kg}, cố thêm 1 rep mỗi set.',
-  reps:'rep', addSet:'Thêm set', removeSet:'Bớt set', confirmSet:'Xác nhận set {n}', undoSet:'Bỏ xác nhận set {n}',
+  reps:'rep', addSet:'Thêm set', removeSetN:'Xóa set {n}', confirmSet:'Xác nhận set {n}', undoSet:'Bỏ xác nhận set {n}',
   removeExercise:'Bỏ bài này', addExercise:'Thêm bài tập', woEmpty:'Chưa có bài nào. Thêm bài tập để bắt đầu.',
   qePh:'Gõ nhanh, vd 80x10x3', qeLabel:'Gõ nhanh các set', qeApply:'Ghi',
   qeBad:'Chưa đọc được. Thử dạng 80x10x3 hoặc 80 10 10 9.', qePrev:'Sẽ ghi {n} set: {list}',
@@ -619,6 +640,9 @@ vi:{
   rpeCourtQ:'Nặng cỡ nào?', saveCourt:'Lưu buổi sân', courtSaved:'Đã lưu buổi {s}', loadCalc:'Tải phiên: {n}', pickSport:'Chọn môn',
   histEmpty:'Chưa có buổi nào. Buổi gym và buổi sân bạn ghi sẽ hiện ở đây.', minShort:'{n} phút',
   volShort:'{n} {u}', prCount:'{n} PR', deleteSession:'Xóa buổi này', deleteSessionQ:'Xóa buổi này khỏi lịch sử?', del:'Xóa', deleted:'Đã xóa',
+  editSession:'Sửa buổi này', editGymSession:'Sửa buổi gym', editCourtSession:'Sửa buổi sân', saveChanges:'Lưu thay đổi', sessionSaved:'Đã cập nhật buổi tập',
+  sessionDate:'Ngày', sessionTime:'Giờ bắt đầu', sessionDuration:'Thời lượng (phút)', badSessionDate:'Chọn ngày và giờ hợp lệ, không sau hiện tại.',
+  badSessionValue:'Kiểm tra lại thời lượng, RPE và các set.', needSessionSet:'Mỗi bài cần ít nhất một set hợp lệ.', editWhileActive:'Hãy kết thúc hoặc hủy buổi tập đang diễn ra trước khi sửa lịch sử.',
   plansS:'Mỗi giáo án là một buổi tập: danh sách bài và khoảng rep mục tiêu.', newPlan:'Giáo án mới', editPlan:'Sửa giáo án',
   planName:'Tên buổi', planNamePh:'Ví dụ: Push, Chân, Upper A', planDays:'Tập vào', exercises:'Bài tập', noExYet:'Chưa có bài nào.',
   sets:'Số set', repMin:'Rep từ', repMax:'Rep đến', incLabel:'Tăng ({u})', restSec:'Nghỉ (s)',
@@ -705,7 +729,7 @@ en:{
   backupT:'No backup in over 7 days', backupS:'Your data lives on this device only. Export a backup file so you never lose your history.', backupNow:'Export backup',
   finish:'Finish', minimize:'Minimize', lastTime:'Last time:', firstTime:'First time on this exercise. Enter the weight you plan to use.',
   whyNew:'No history yet to suggest from.', whyUp:'You hit the top of the rep range. Go up to {to}.', whyHold:'Stay at {kg} and aim for one more rep per set.',
-  reps:'reps', addSet:'Add set', removeSet:'Remove set', confirmSet:'Confirm set {n}', undoSet:'Undo set {n}',
+  reps:'reps', addSet:'Add set', removeSetN:'Remove set {n}', confirmSet:'Confirm set {n}', undoSet:'Undo set {n}',
   removeExercise:'Remove exercise', addExercise:'Add exercise', woEmpty:'No exercises yet. Add one to get started.',
   qePh:'Quick: 80x10x3 or 80 10 10', qeLabel:'Quick set entry', qeApply:'Log',
   qeBad:'Could not read that. Try 80x10x3 or 80 10 10 9.', qePrev:'Will log {n} sets: {list}', qePrev_one:'Will log 1 set: {list}',
@@ -719,6 +743,9 @@ en:{
   rpeCourtQ:'How hard was it?', saveCourt:'Save court session', courtSaved:'{s} session saved', loadCalc:'Session load: {n}', pickSport:'Pick a sport',
   histEmpty:'No sessions yet. Gym and court sessions you log will show up here.', minShort:'{n} min',
   volShort:'{n} {u}', prCount:'{n} PR', deleteSession:'Delete session', deleteSessionQ:'Delete this session from your history?', del:'Delete', deleted:'Deleted',
+  editSession:'Edit session', editGymSession:'Edit gym session', editCourtSession:'Edit court session', saveChanges:'Save changes', sessionSaved:'Session updated',
+  sessionDate:'Date', sessionTime:'Start time', sessionDuration:'Duration (minutes)', badSessionDate:'Pick a valid date and time, not in the future.',
+  badSessionValue:'Check the duration, RPE and set values.', needSessionSet:'Every exercise needs at least one valid set.', editWhileActive:'Finish or discard the workout in progress before editing history.',
   plansS:'Each plan is one session: its exercises and target rep ranges.', newPlan:'New plan', editPlan:'Edit plan',
   planName:'Session name', planNamePh:'e.g. Push, Legs, Upper A', planDays:'Train on', exercises:'Exercises', noExYet:'No exercises yet.',
   sets:'Sets', repMin:'Reps from', repMax:'Reps to', incLabel:'Step ({u})', restSec:'Rest (s)',
@@ -858,6 +885,11 @@ function persist(){
 }
 function touchState(){ S.meta.stateAt = now(); Cloud.mark('state'); persist(); }
 function touchMonth(iso){ const k = monthKey(iso); S.meta.months[k] = now(); Cloud.mark(k); persist(); }
+function touchMonths(keys){
+  const stamp = now();
+  Array.from(new Set(keys || [])).filter(Boolean).forEach(k => { S.meta.months[k] = stamp; Cloud.mark(k); });
+  persist();
+}
 
 /* ================= Units ================= */
 const isLb = () => S.settings.unit === 'lb';
@@ -944,6 +976,37 @@ function bestRepsAt(exId, kg){
     for (const e of (s.exercises || [])) if (e.exId === exId) working(e.sets).forEach(x => { if (sameKg(x.kg, kg) && x.reps > b) b = x.reps; });
   }
   return b;
+}
+/* Rebuild stored records in chronological order after saved history changes. The first
+   performance is the baseline; warm-ups never establish or earn records. */
+function recalculateRecords(){
+  const scores = new Map(), repBests = new Map(), changed = new Set();
+  const sessions = S.sessions.filter(s => s.type === 'gym').slice().sort((a, b) => {
+    const d = String(a.start).localeCompare(String(b.start));
+    return d || String(a.id).localeCompare(String(b.id));
+  });
+  sessions.forEach(s => (s.exercises || []).forEach(e => {
+    const id = e.exId;
+    (e.sets || []).forEach(st => {
+      const wasPr = !!st.pr, wasRep = !!st.prRep;
+      let pr = false, prRep = false;
+      if (!st.w) {
+        const score = setScore(id, st), previous = scores.get(id) || 0;
+        pr = !isBW(id) && previous > 0 && score > previous + 1e-9;
+        if (!isTimed(id) && ((st.kg || 0) > 0 || isBW(id))) {
+          let rows = repBests.get(id); if (!rows) { rows = new Map(); repBests.set(id, rows); }
+          const key = Math.round((st.kg || 0) * 1000000), previousReps = rows.get(key) || 0;
+          prRep = !pr && previousReps > 0 && (st.reps || 0) > previousReps;
+          rows.set(key, Math.max(previousReps, st.reps || 0));
+        }
+        scores.set(id, Math.max(previous, score));
+      }
+      st.pr = pr;
+      if (prRep) st.prRep = true; else delete st.prRep;
+      if (wasPr !== pr || wasRep !== prRep) changed.add(monthKey(s.start));
+    });
+  }));
+  return Array.from(changed);
 }
 function fmtSets(sets, exId){
   const ty = exId ? exType(exId) : 'weighted', groups = [];
@@ -1381,6 +1444,85 @@ function sessionStats(s){
   return {sets, vol, pr};
 }
 
+/* ================= Saved session editing ================= */
+function sessionDateParts(iso){
+  const d = new Date(iso);
+  return {date: localKey(d), time: pad(d.getHours()) + ':' + pad(d.getMinutes())};
+}
+function sessionDraft(s){
+  const d = JSON.parse(JSON.stringify(s)), parts = sessionDateParts(s.start);
+  d.date = parts.date; d.time = parts.time;
+  return d;
+}
+function sessionStartFromDraft(d, originalStart){
+  const m = String(d.date || '').match(/^(\d{4})-(\d{2})-(\d{2})$/), tm = String(d.time || '').match(/^(\d{2}):(\d{2})$/);
+  if (!m || !tm) return null;
+  const y = +m[1], mo = +m[2], day = +m[3], h = +tm[1], min = +tm[2];
+  if (h > 23 || min > 59) return null;
+  const date = new Date(y, mo - 1, day, h, min, 0, 0);
+  if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== day || date.getHours() !== h || date.getMinutes() !== min) return null;
+  const old = new Date(originalStart), parts = sessionDateParts(originalStart);
+  return d.date === parts.date && d.time === parts.time && !isNaN(old.getTime()) ? old : date;
+}
+function newSessionSet(exId, cfg, previous){
+  const timed = isTimed(exId), st = {kg: previous && Number.isFinite(previous.kg) ? previous.kg : 0,
+    pr: false, logSec: 0, taps: 0, accepted: false, t: null};
+  if (timed) st.sec = previous && previous.sec ? previous.sec : 30;
+  else st.reps = previous && previous.reps ? previous.reps : cfg.repMin;
+  return st;
+}
+function newSessionExercise(exId){
+  const cfg = normCfg(exId, {sets: 1});
+  return {exId, cfg, sets: [newSessionSet(exId, cfg, null)]};
+}
+function applySessionEdit(d){
+  if (S.active) return {error: 'editWhileActive'};
+  const i = S.sessions.findIndex(s => s.id === d.id), old = S.sessions[i];
+  if (i < 0 || !old || old.type !== d.type) return {error: 'badSessionValue'};
+  const startDate = sessionStartFromDraft(d, old.start);
+  if (!startDate || startDate.getTime() > now()) return {error: 'badSessionDate'};
+  const start = startDate.toISOString(), moved = startDate.getTime() !== new Date(old.start).getTime();
+  const durationMin = Math.round(Number(d.durationMin)), rpe = d.rpe == null ? null : Math.round(Number(d.rpe));
+  const maxDuration = old.type === 'court' ? 600 : 1440;
+  if (!Number.isFinite(durationMin) || durationMin < 1 || durationMin > maxDuration || (rpe != null && (!Number.isFinite(rpe) || rpe < 1 || rpe > 10))) return {error: 'badSessionValue'};
+  let clean;
+  if (old.type === 'court') {
+    if (!SPORTS.some(x => x.id === d.sport) || rpe == null) return {error: 'badSessionValue'};
+    clean = {id: old.id, type: 'court', sport: d.sport, start, tz: moved ? TZ : (old.tz || TZ),
+      durationMin, rpe, load: durationMin * rpe};
+  } else {
+    const name = String(d.name || '').trim().slice(0, 80), notes = String(d.notes || '').trim().slice(0, 2000);
+    if (!name) return {error: 'needName'};
+    if (!Array.isArray(d.exercises) || !d.exercises.length || d.exercises.length > 100) return {error: 'needEx'};
+    const known = new Set(LIB.concat(S.custom).map(x => x.id)), exercises = [], delta = startDate.getTime() - new Date(old.start).getTime();
+    for (const e of d.exercises) {
+      if (!e || !known.has(e.exId) || !Array.isArray(e.sets) || !e.sets.length || e.sets.length > 100) return {error: 'needSessionSet'};
+      const sets = [];
+      for (const st of e.sets) {
+        const kg = Number(st.kg), timed = isTimed(e.exId), value = Number(st[timed ? 'sec' : 'reps']);
+        if (!Number.isFinite(kg) || kg < 0 || kg > 2000 || !Number.isFinite(value) || value < 1 || value > (timed ? 86400 : 10000)) return {error: 'badSessionValue'};
+        let setTime = null;
+        if (st.t != null && !isNaN(new Date(st.t).getTime())) setTime = new Date(new Date(st.t).getTime() + delta).toISOString();
+        const o = {kg: round2(kg), pr: false,
+          logSec: Number.isFinite(st.logSec) ? st.logSec : 0,
+          taps: Number.isFinite(st.taps) ? st.taps : 0,
+          accepted: !!st.accepted, t: setTime};
+        if (timed) o.sec = Math.round(value); else o.reps = Math.round(value);
+        if (st.w) o.w = true;
+        sets.push(o);
+      }
+      const cfg = normCfg(e.exId, e.cfg || {});
+      cfg.sets = Math.min(10, Math.max(1, working(sets).length || sets.length));
+      exercises.push({exId: e.exId, cfg, sets});
+    }
+    clean = {id: old.id, type: 'gym', templateId: old.templateId || null, name, start, tz: moved ? TZ : (old.tz || TZ),
+      end: new Date(startDate.getTime() + durationMin * 60000).toISOString(), durationMin, rpe, notes, exercises};
+  }
+  S.sessions[i] = clean;
+  const recordMonths = old.type === 'gym' ? recalculateRecords() : [];
+  return {session: clean, months: Array.from(new Set([monthKey(old.start), monthKey(clean.start)].concat(recordMonths)))};
+}
+
 /* ================= Icons ================= */
 const sv = (p, w) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
 const ICON = {
@@ -1401,7 +1543,7 @@ const ICON = {
 /* ================= UI state ================= */
 const ui = {tab: 'today', wo: false, sheet: null, editor: null, ob: 0, pickTarget: null, pickQ: '', pickM: 'all',
   finRpe: null, finNotes: '', court: null, confirm: null, open: {}, qeT0: {}, copyText: '',
-  plansView: 'plans', lib: {q: '', m: 'all', ty: 'all', hidden: false}, exEdit: null, daySrc: 'tpl', bodyM: null, bodyAll: false, bodyEd: null};
+  plansView: 'plans', lib: {q: '', m: 'all', ty: 'all', hidden: false}, exEdit: null, daySrc: 'tpl', bodyM: null, bodyAll: false, bodyEd: null, sessEdit: null};
 
 /* ================= Render ================= */
 function applyTheme(){
@@ -1602,7 +1744,6 @@ function viewWorkout(){
 function viewEx(ex, ei){
   const sg = suggest(ex.cfg, ex.exId), alt = exAlt(ex.exId), gate = nextGate(ex), ty = exType(ex.exId);
   const hasW = ex.sets.some(x => x.w);
-  const lastDone = ex.sets.length && ex.sets[ex.sets.length - 1].done;
   let gateHtml = '';
   if (gate) {
     const pct = Math.round(100 * gate.have / gate.need), kg = dispW(gate.nk) + ' ' + unitLabel();
@@ -1615,10 +1756,9 @@ function viewEx(ex, ei){
     '<button class="icon-btn sm" data-a="ex-rm" data-ei="' + ei + '" aria-label="' + t('removeExercise') + '">' + ICON.x + '</button></div>' +
     '<div class="ex-last">' + (sg.last ? t('lastTime') + ' <b>' + esc(fmtSets(sg.last.sets, ex.exId)) + '</b>' : t('firstTime')) + '</div>' +
     (sg.last ? '<div class="ex-why">' + esc(sg.why) + '</div>' : '') + gateHtml +
-    '<div class="set head" aria-hidden="true"><span></span><span>' + (ty === 'weighted' ? unitLabel() : '+' + unitLabel()) + '</span><span>' + (ty === TM ? t('secShort') : t('reps')) + '</span><span></span></div>' +
+    '<div class="set head" aria-hidden="true"><span></span><span>' + (ty === 'weighted' ? unitLabel() : '+' + unitLabel()) + '</span><span>' + (ty === TM ? t('secShort') : t('reps')) + '</span><span></span><span></span></div>' +
     ex.sets.map((st, si) => viewSet(ex, st, ei, si, st.w ? 0 : ++no)).join('') +
     '<div class="ex-actions"><button class="link" data-a="set-add" data-ei="' + ei + '">+ ' + t('addSet') + '</button>' +
-    (ex.sets.length > 1 && !lastDone ? '<button class="link muted" data-a="set-rm" data-ei="' + ei + '">− ' + t('removeSet') + '</button>' : '') +
     (!hasW && ty === 'weighted' ? '<button class="link muted" data-a="warmup-add" data-ei="' + ei + '">+ ' + t('addWarmup') + '</button>' : '') + '</div>' +
     '<div class="qe"><input class="qe-in" data-qe="' + ei + '" placeholder="' + esc(t(ty === TM ? 'qePhTime' : ty === BW ? 'qePhBw' : 'qePh')) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="' + esc(t('qeLabel')) + '">' +
     '<button class="btn btn-ghost btn-sm" data-a="qe-apply" data-ei="' + ei + '">' + t('qeApply') + '</button></div>' +
@@ -1637,7 +1777,13 @@ function viewSet(ex, st, ei, si, no){
   const badge = st.pr ? '<span class="pr">PR</span>' : st.prRep ? '<span class="pr">' + t('prRepShort') + '</span>' : '';
   return '<div class="set' + (st.done ? ' done' : '') + (st.w ? ' warm' : '') + '"><button class="set-no" data-a="set-w" data-ei="' + ei + '" data-si="' + si + '" aria-label="' + esc(t('toggleWarmup')) + '">' + esc(label) + badge + '</button>' +
     stepper('kg', st, ei, si) + stepper(valKey(ex.exId), st, ei, si) +
-    '<button class="check" data-a="set-done" data-ei="' + ei + '" data-si="' + si + '" aria-pressed="' + !!st.done + '" aria-label="' + esc(st.done ? t('undoSet', {n: label}) : t('confirmSet', {n: label})) + '">' + ICON.check + '</button></div>' + delta;
+    '<button class="check" data-a="set-done" data-ei="' + ei + '" data-si="' + si + '" aria-pressed="' + !!st.done + '" aria-label="' + esc(st.done ? t('undoSet', {n: label}) : t('confirmSet', {n: label})) + '">' + ICON.check + '</button>' +
+    '<button class="set-remove" data-a="set-rm" data-ei="' + ei + '" data-si="' + si + '" aria-label="' + esc(t('removeSetN', {n: label})) + '"' + (st.done || ex.sets.length <= 1 ? ' disabled' : '') + '>' + ICON.x + '</button></div>' + delta;
+}
+function removeSetAt(ex, si){
+  if (!ex || !Array.isArray(ex.sets) || ex.sets.length <= 1 || !Number.isInteger(si) || si < 0 || si >= ex.sets.length || ex.sets[si].done) return false;
+  ex.sets.splice(si, 1);
+  return true;
 }
 function stepper(f, st, ei, si){
   const val = f === 'kg' ? dispW(st.kg) : (st[f] == null ? '' : st[f]);
@@ -1725,14 +1871,16 @@ function viewSess(s){
   if (s.type === 'court') {
     return '<div class="sess"><button class="sess-head" data-a="sess-toggle" data-id="' + s.id + '" aria-expanded="' + open + '"><span class="tag c"></span><div class="row-main"><div class="row-title">' + esc(sportName(s.sport)) + '</div>' +
       '<div class="row-sub">' + t('minShort', {n: s.durationMin}) + ', RPE ' + s.rpe + '</div></div><span class="row-end">' + t('loadCalc', {n: fmtInt(s.load || 0)}) + '</span></button>' +
-      (open ? '<div class="sess-body"><button class="btn btn-danger btn-sm" data-a="sess-del" data-id="' + s.id + '">' + t('deleteSession') + '</button></div>' : '') + '</div>';
+      (open ? '<div class="sess-body"><div class="sess-actions"><button class="btn btn-ghost btn-sm" data-a="sess-edit" data-id="' + s.id + '">' + t('editSession') + '</button>' +
+        '<button class="btn btn-danger btn-sm" data-a="sess-del" data-id="' + s.id + '">' + t('deleteSession') + '</button></div></div>' : '') + '</div>';
   }
   const st = sessionStats(s);
   return '<div class="sess"><button class="sess-head" data-a="sess-toggle" data-id="' + s.id + '" aria-expanded="' + open + '"><span class="tag g"></span><div class="row-main"><div class="row-title">' + esc(s.name) + '</div>' +
     '<div class="row-sub">' + fmtTime(s.start) + ', ' + t('minShort', {n: s.durationMin}) + ', ' + tn('setCount', st.sets) + (s.rpe ? ', RPE ' + s.rpe : '') + '</div></div>' +
     '<span class="row-end">' + t('volShort', {n: fmtInt(isLb() ? st.vol * LB : st.vol), u: unitLabel()}) + (st.pr ? '<br><b style="color:var(--good)">' + t('prCount', {n: st.pr}) + '</b>' : '') + '</span></button>' +
     (open ? '<div class="sess-body">' + s.exercises.map(e => '<div class="sess-ex"><b>' + esc(exName(e.exId)) + '</b><span>' + esc(fmtSets(e.sets, e.exId)) + '</span></div>').join('') +
-      (s.notes ? '<p class="hint">' + esc(s.notes) + '</p>' : '') + '<button class="btn btn-danger btn-sm mt" data-a="sess-del" data-id="' + s.id + '">' + t('deleteSession') + '</button></div>' : '') + '</div>';
+      (s.notes ? '<p class="hint">' + esc(s.notes) + '</p>' : '') + '<div class="sess-actions"><button class="btn btn-ghost btn-sm" data-a="sess-edit" data-id="' + s.id + '">' + t('editSession') + '</button>' +
+      '<button class="btn btn-danger btn-sm" data-a="sess-del" data-id="' + s.id + '">' + t('deleteSession') + '</button></div></div>' : '') + '</div>';
 }
 
 /* ---------- Plans ---------- */
@@ -1985,6 +2133,8 @@ function viewSheet(){
       '<div class="field"><span>' + t('rpeCourtQ') + '</span><div class="chips">' + rpeChips('court-rpe', c.rpe) + '</div><p class="hint">' + t('rpeHint') + '</p></div>' +
       '<p class="hint" id="court-load">' + (c.min && c.rpe ? t('loadCalc', {n: fmtInt(c.min * c.rpe)}) : '') + '</p>' +
       '<div class="sheet-actions"><button class="btn btn-primary btn-block" data-a="court-save"' + (c.sport && c.min && c.rpe ? '' : ' disabled') + '>' + t('saveCourt') + '</button></div>';
+  } else if (ui.sheet === 'session') {
+    inner = viewSessionEditSheet(head);
   } else if (ui.sheet === 'day') {
     inner = viewDaySheet(head);
   } else if (ui.sheet === 'exlib') {
@@ -2006,6 +2156,42 @@ function rpeChips(action, cur){
   let s = '';
   for (let i = 1; i <= 10; i++) s += '<button class="chip num-chip" data-a="' + action + '" data-v="' + i + '" aria-pressed="' + (cur === i) + '">' + i + '</button>';
   return s;
+}
+function viewSessionEditSheet(head){
+  const d = ui.sessEdit, today = localKey(new Date());
+  if (!d) return '';
+  const dateTime = '<div class="se-datetime"><label class="mini"><span>' + t('sessionDate') + '</span><input type="date" data-se="date" max="' + today + '" value="' + esc(d.date) + '"></label>' +
+    '<label class="mini"><span>' + t('sessionTime') + '</span><input type="time" data-se="time" value="' + esc(d.time) + '"></label></div>' +
+    '<label class="field"><span>' + t('sessionDuration') + '</span><input type="number" data-se="durationMin" min="1" max="' + (d.type === 'court' ? 600 : 1440) + '" inputmode="numeric" value="' + esc(d.durationMin) + '"></label>';
+  let body = '';
+  if (d.type === 'court') {
+    body = '<div class="field" style="margin-top:0"><span>' + t('sport') + '</span><div class="chips">' + SPORTS.map(s => '<button class="chip" data-a="sess-edit-sport" data-v="' + s.id + '" aria-pressed="' + (d.sport === s.id) + '">' + esc(sportName(s.id)) + '</button>').join('') + '</div></div>' +
+      dateTime + '<div class="field"><span>' + t('rpeCourtQ') + '</span><div class="chips">' + rpeChips('sess-edit-rpe', d.rpe) + '</div><p class="hint">' + t('rpeHint') + '</p></div>' +
+      '<p class="hint" id="session-load">' + (d.durationMin && d.rpe ? t('loadCalc', {n: fmtInt(d.durationMin * d.rpe)}) : '') + '</p>';
+  } else {
+    body = '<label class="field" style="margin-top:0"><span>' + t('planName') + '</span><input data-se="name" maxlength="80" value="' + esc(d.name) + '"></label>' + dateTime +
+      '<div class="field"><span>' + t('rpeQ') + '</span><div class="chips">' + rpeChips('sess-edit-rpe', d.rpe) + '</div><p class="hint">' + t('rpeHint') + '</p></div>' +
+      '<label class="field"><span>' + t('notes') + '</span><textarea data-se="notes" maxlength="2000" placeholder="' + esc(t('notesPh')) + '">' + esc(d.notes || '') + '</textarea></label>' +
+      '<h3 class="h3">' + t('exercises') + '</h3>' + (d.exercises || []).map(viewSessionEditExercise).join('') +
+      '<button class="btn btn-ghost btn-block mt" data-a="pick" data-target="sess">' + ICON.plus + t('addExercise') + '</button>';
+  }
+  return head(t(d.type === 'court' ? 'editCourtSession' : 'editGymSession')) + body +
+    '<div class="sheet-actions"><button class="btn btn-primary btn-block" data-a="sess-edit-save">' + t('saveChanges') + '</button>' +
+    '<button class="btn btn-ghost btn-block" data-a="sess-edit-cancel">' + t('cancel') + '</button></div>';
+}
+function viewSessionEditExercise(e, ei){
+  const ty = exType(e.exId), vk = valKey(e.exId), valueLabel = ty === TM ? t('secShort') : t('reps');
+  let no = 0;
+  const rows = (e.sets || []).map((st, si) => {
+    const label = st.w ? t('wLabel') : String(++no), kg = dispW(st.kg), value = st[vk] == null ? '' : st[vk];
+    return '<div class="se-set"><button class="se-kind" data-a="sess-edit-warm" data-ei="' + ei + '" data-si="' + si + '" aria-pressed="' + !!st.w + '" aria-label="' + esc(t('toggleWarmup')) + '">' + esc(label) + '</button>' +
+      '<input class="se-input" data-se-set="kg" data-ei="' + ei + '" data-si="' + si + '" inputmode="decimal" value="' + esc(kg) + '" aria-label="' + esc((ty === 'weighted' ? unitLabel() : '+' + unitLabel()) + ', set ' + (si + 1)) + '">' +
+      '<input class="se-input" data-se-set="' + vk + '" data-ei="' + ei + '" data-si="' + si + '" inputmode="numeric" value="' + esc(value) + '" aria-label="' + esc(valueLabel + ', set ' + (si + 1)) + '">' +
+      '<button class="icon-btn" data-a="sess-edit-set-rm" data-ei="' + ei + '" data-si="' + si + '"' + (e.sets.length <= 1 ? ' disabled' : '') + ' aria-label="' + esc(t('removeSetN', {n: label})) + '">' + ICON.x + '</button></div>';
+  }).join('');
+  return '<section class="se-ex"><div class="se-ex-top"><b>' + esc(exName(e.exId)) + '</b><button class="icon-btn" data-a="sess-edit-ex-rm" data-ei="' + ei + '" aria-label="' + t('removeExercise') + '">' + ICON.x + '</button></div>' +
+    '<div class="se-set-head"><span></span><span>' + (ty === 'weighted' ? unitLabel() : '+' + unitLabel()) + '</span><span>' + valueLabel + '</span><span></span></div>' + rows +
+    '<button class="link se-add" data-a="sess-edit-set-add" data-ei="' + ei + '">+ ' + t('addSet') + '</button></section>';
 }
 function viewDaySheet(head){
   const k = ui.dayKey, p = k.split('-').map(Number), date = new Date(p[0], p[1] - 1, p[2]), today = new Date();
@@ -2082,7 +2268,8 @@ function pickList(){
   const q = ui.pickQ.trim().toLowerCase();
   const all = LIB.concat(S.custom);
   const nq = norm(q);
-  const list = all.filter(e => !isHidden(e.id) && (ui.pickM === 'all' || e.m === ui.pickM) && (!nq || norm(e.vi).includes(nq) || norm(e.en).includes(nq)));
+  const selected = ui.pickTarget === 'sess' && ui.sessEdit ? new Set((ui.sessEdit.exercises || []).map(e => e.exId)) : new Set();
+  const list = all.filter(e => !selected.has(e.id) && !isHidden(e.id) && (ui.pickM === 'all' || e.m === ui.pickM) && (!nq || norm(e.vi).includes(nq) || norm(e.en).includes(nq)));
   let h = list.map(e => '<button class="pick-row" data-a="pick-ex" data-id="' + esc(e.id) + '"><div class="row-main"><div class="row-title">' + esc(exName(e.id)) + '</div>' +
     (exAlt(e.id) ? '<div class="row-sub">' + esc(exAlt(e.id)) + '</div>' : '') + '</div><span class="m">' + t('m_' + (e.m || 'other')) + (exType(e.id) !== 'weighted' ? '<br>' + t('tyS_' + exType(e.id)) : '') + '</span></button>').join('');
   const exact = all.some(e => norm(e.vi) === nq || norm(e.en) === nq);
@@ -2291,7 +2478,16 @@ function openCourt(){
   const mine = S.settings.sports.length ? S.settings.sports : ['pickleball'];
   ui.court = {sport: mine[0], min: 60, rpe: null, when: 0, showAll: false}; ui.sheet = 'court'; render();
 }
-function closeSheet(){ ui.sheet = null; ui.confirm = null; if (ui.pickTarget) ui.pickTarget = null; render(); }
+function openSessionEdit(id){
+  if (S.active) { toast(t('editWhileActive')); return; }
+  const s = S.sessions.find(x => x.id === id); if (!s) return;
+  ui.sessEdit = sessionDraft(s); ui.sheet = 'session'; render();
+}
+function closeSheet(){
+  if (ui.sheet === 'picker' && ui.pickTarget === 'sess' && ui.sessEdit) { ui.pickTarget = null; ui.sheet = 'session'; render(); return; }
+  if (ui.sheet === 'session') ui.sessEdit = null;
+  ui.sheet = null; ui.confirm = null; if (ui.pickTarget) ui.pickTarget = null; render();
+}
 
 const A = {
   'tab': el => { ui.tab = el.dataset.tab; window.scrollTo(0, 0); render(); },
@@ -2344,7 +2540,7 @@ const A = {
     else ex.sets.push({kg: last ? last.kg : (isBW(ex.exId) ? 0 : null), reps: last ? last.reps : ex.cfg.repMin, sugKg: null, sugReps: null, done: false, t0: null, taps: 0, pr: false, prRep: false, w: false});
     persist(); render();
   },
-  'set-rm': el => { const ex = S.active.exercises[+el.dataset.ei]; if (ex.sets.length > 1 && !ex.sets[ex.sets.length - 1].done) ex.sets.pop(); persist(); render(); },
+  'set-rm': el => { const ex = S.active.exercises[+el.dataset.ei]; if (removeSetAt(ex, +el.dataset.si)) { persist(); render(); } },
   'ex-rm': el => { S.active.exercises.splice(+el.dataset.ei, 1); persist(); render(); },
   'qe-apply': el => {
     ensureAudio();
@@ -2467,9 +2663,38 @@ const A = {
   },
   // history
   'sess-toggle': el => { ui.open[el.dataset.id] = !ui.open[el.dataset.id]; render(); },
+  'sess-edit': el => openSessionEdit(el.dataset.id),
+  'sess-edit-cancel': () => { ui.sessEdit = null; ui.sheet = null; render(); },
+  'sess-edit-sport': el => { if (ui.sessEdit) { ui.sessEdit.sport = el.dataset.v; render(); } },
+  'sess-edit-rpe': el => {
+    if (!ui.sessEdit) return;
+    const v = +el.dataset.v;
+    ui.sessEdit.rpe = ui.sessEdit.type === 'court' ? v : (ui.sessEdit.rpe === v ? null : v);
+    render();
+  },
+  'sess-edit-warm': el => {
+    const e = ui.sessEdit && ui.sessEdit.exercises[+el.dataset.ei], st = e && e.sets[+el.dataset.si];
+    if (st) { st.w = !st.w; render(); }
+  },
+  'sess-edit-set-add': el => {
+    const e = ui.sessEdit && ui.sessEdit.exercises[+el.dataset.ei]; if (!e || e.sets.length >= 100) return;
+    e.sets.push(newSessionSet(e.exId, e.cfg || normCfg(e.exId, {}), e.sets[e.sets.length - 1])); render();
+  },
+  'sess-edit-set-rm': el => {
+    const e = ui.sessEdit && ui.sessEdit.exercises[+el.dataset.ei], si = +el.dataset.si;
+    if (e && e.sets.length > 1 && si >= 0 && si < e.sets.length) { e.sets.splice(si, 1); render(); }
+  },
+  'sess-edit-ex-rm': el => { if (ui.sessEdit && ui.sessEdit.type === 'gym') { ui.sessEdit.exercises.splice(+el.dataset.ei, 1); render(); } },
+  'sess-edit-save': () => {
+    if (!ui.sessEdit) return;
+    const result = applySessionEdit(ui.sessEdit);
+    if (result.error) { toast(t(result.error)); return; }
+    ui.sessEdit = null; ui.sheet = null; touchMonths(result.months); toast(t('sessionSaved')); render();
+  },
   'sess-del': el => ask(t('deleteSessionQ'), t('del'), () => {
     const i = S.sessions.findIndex(s => s.id === el.dataset.id); if (i < 0) return;
-    const s = S.sessions.splice(i, 1)[0]; touchMonth(s.start);
+    const s = S.sessions.splice(i, 1)[0], recordMonths = s.type === 'gym' ? recalculateRecords() : [];
+    touchMonths([monthKey(s.start)].concat(recordMonths));
     const dp = S.settings.dayPlans; let tch = false; Object.keys(dp).forEach(k => { if (dp[k].k === 'sess' && dp[k].id === s.id) { delete dp[k]; tch = true; } }); if (tch) touchState();
     toast(t('deleted')); render();
   }),
@@ -2549,6 +2774,10 @@ function retireMonths(keys){
 function addPicked(id){
   if (ui.pickTarget === 'wo' && S.active) { S.active.exercises.push(buildEx(id, {})); persist(); }
   else if (ui.pickTarget === 'ed' && ui.editor) { ui.editor.exercises.push(Object.assign({exId: id}, normCfg(id, {}))); }
+  else if (ui.pickTarget === 'sess' && ui.sessEdit && ui.sessEdit.type === 'gym') {
+    if (!ui.sessEdit.exercises.some(e => e.exId === id)) ui.sessEdit.exercises.push(newSessionExercise(id));
+    ui.sheet = 'session'; ui.pickTarget = null; render(); return;
+  }
   ui.sheet = null; ui.pickTarget = null; render();
 }
 
@@ -2570,6 +2799,19 @@ document.addEventListener('input', ev => {
     const {st} = activeSet(el); if (st.done) return;
     if (ds.in === 'kg') { const v = fromDisp(el.value); st.kg = v == null ? null : Math.max(0, v); } else { const n = parseInt(el.value, 10); st[ds.in === 'sec' ? 'sec' : 'reps'] = isNaN(n) ? null : Math.max(0, n); }
     persist(); return;
+  }
+  if (ds.se && ui.sessEdit) {
+    if (ds.se === 'durationMin') { const n = parseInt(el.value, 10); ui.sessEdit.durationMin = isNaN(n) ? null : n; }
+    else ui.sessEdit[ds.se] = el.value;
+    const lo = document.getElementById('session-load');
+    if (lo) lo.textContent = ui.sessEdit.durationMin && ui.sessEdit.rpe ? t('loadCalc', {n: fmtInt(ui.sessEdit.durationMin * ui.sessEdit.rpe)}) : '';
+    return;
+  }
+  if (ds.seSet && ui.sessEdit && ui.sessEdit.type === 'gym') {
+    const e = ui.sessEdit.exercises[+ds.ei], st = e && e.sets[+ds.si]; if (!st) return;
+    if (ds.seSet === 'kg') { const v = fromDisp(el.value); st.kg = v == null ? null : v; }
+    else { const n = parseInt(el.value, 10); st[ds.seSet] = isNaN(n) ? null : n; }
+    return;
   }
   if (ds.qe != null) { refreshQePreview(ds.qe, el.value); return; }
   if (el.id === 'pick-q') { ui.pickQ = el.value; const l = $('#pick-list'); if (l) l.innerHTML = pickList(); return; }
@@ -2625,7 +2867,8 @@ if (window.__SETPOINT_TEST__) {
     lib: LIB, bodyMetrics: BODY_M,
     validateBackupObject,
     logDuration,
-    e1rm, suggest, normCfg, warmupSets, nextRotation, projectWeeks, computeInsight, weekStreak, exposures, isRepPR, isPR, nextGate, checkMilestones,
+    e1rm, suggest, normCfg, warmupSets, removeSetAt, nextRotation, projectWeeks, computeInsight, weekStreak, exposures, isRepPR, isPR, nextGate, checkMilestones,
+    recalculateRecords, sessionDraft, applySessionEdit,
     setState(x){ S = migrate(x); },
     getState(){ return S; },
     defaultIncrement(id, unit){

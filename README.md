@@ -26,7 +26,7 @@ On iPhone, open the link in Safari → Share → *Add to Home Screen* for an app
 | Workout | Last-session values, prefilled suggestions (double progression), one-tap confirm, PR detection, rest timer |
 | Quick entry | `80x10x3` · `80 10 10 9` · `20x10 / 25x8` |
 | Court | Log a racket or other sport session in seconds, or repeat the last one in one tap; session load = minutes × RPE |
-| Progress | Body stats log (weight + InBody by date) with trends, weekly streak, 16-week heatmap, exercise charts with targets and forecasts, weekly insight, history |
+| Progress | Body stats log (weight + InBody by date) with trends, weekly streak, 16-week heatmap, exercise charts with targets and forecasts, weekly insight, editable history |
 | Habits | Warm-up sets, progress bar to next weight, delta vs last time, rep PRs, pain flag, rotation scheduling, weekly plan, milestones |
 | Data | JSON backup export/import; automatic private backup when opened inside Claude |
 | Metrics | Seconds per set, taps per set, suggestion acceptance, weeks with 3+ sessions |

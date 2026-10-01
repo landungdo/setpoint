@@ -1,6 +1,6 @@
 # Functional Specification — Setpoint v0.3.0 (additions to v0.2.0)
 
-Status: As built · Date: 30/09/2026 · Base: `functional-spec-v0.2.0.md` and `functional-spec-r0.1.1.md` (still valid unless changed here)
+Status: As built · Date: 01/10/2026 · Base: `functional-spec-v0.2.0.md` and `functional-spec-r0.1.1.md` (still valid unless changed here)
 
 ## 1. Scheduling by date (P1)
 - Tap any day in **This week** (today or later) → **Plan for this day**. The current plan is shown with its source: *Set for this date* or *From your weekly schedule*.
@@ -46,13 +46,24 @@ Status: As built · Date: 30/09/2026 · Base: `functional-spec-v0.2.0.md` and `f
 ## 6. Interface
 - Visual refresh: deep court-blue theme with champagne gold accent, court-line backdrop fading down the page with light grain, glass cards, floating tab bar, sheet handle and slide-up, gold-tinted selected chips. Light and dark themes. System fonts only, no external requests.
 - UI fixes: list icons (▶, ✓) were invisible; weekly streak label squeezed to one word per line; sample-plan button overflowed; workout action links wrapped mid-label; import navigated to a removed tab; quick-entry placeholder was cut off; rest-timer "Skip" wrapped.
+- Each workout set row has its own remove action. It removes that exact unconfirmed set, confirmed sets must be undone first, and an exercise always keeps at least one set.
 
-## 7. Data (additive, schema version unchanged = 1)
+## 7. Edit saved sessions
+- An expanded History item offers **Edit** beside **Delete**. Editing is unavailable while a workout is in progress, so a saved session cannot conflict with the active workout.
+- Gym sessions: edit the session name, local date/time, duration, RPE, notes, exercises, set values and warm-up status; exercises and sets may be added or removed. A gym session must keep a name, at least one exercise and at least one valid set per exercise.
+- Court sessions: edit the sport, local date/time, duration and RPE. Session load is always recalculated as `durationMin × rpe`.
+- **Cancel** closes the editor without changing saved data. **Save changes** preserves the session ID, template reference and existing per-set logging metrics (`logSec`, `taps`, `accepted`); newly added sets use neutral zero/false metrics.
+- A saved session cannot be moved into the future. Gym duration is limited to 1–1440 minutes, court duration to 1–600 minutes, and notes to 2,000 characters.
+- After a gym edit or deletion, PR and rep-PR flags are rebuilt chronologically. Warm-up sets remain excluded; the first historical performance is a baseline, not a PR. Derived e1RM charts, weekly load, insights, forecasts and next-session suggestions then read the corrected history automatically.
+- Moving a session between months marks both the old and new cloud month documents dirty. Any later month whose stored PR flags change is also marked dirty.
+- No stored fields are added and backup schema version remains 1.
+
+## 8. Data (additive, schema version unchanged = 1)
 - Top level: `body: [{ id, date: 'YYYY-MM-DD', kg?, pbf?, smm?, bfm?, vfl?, waist?, tbw?, bmr?, score? }]` — synced inside the `state` cloud document.
 - Settings: `dayPlans: { 'YYYY-MM-DD': { k: 'tpl'|'sess', id } | { k: 'rest' } }`, `hiddenEx: [exId]`.
 - Custom exercises: `type: 'weighted'|'bodyweight'|'timed'`.
 - Sets of timed exercises: `sec` instead of `reps`.
 - Backup import (D-015): body entries with a broken id/date reject the file; out-of-range values are dropped; duplicate dates keep the first. Date entries that reference unknown plans/sessions and unknown hidden IDs are dropped. v0.2 backups import unchanged.
 
-## 8. Not changed
+## 9. Not changed
 - Metric "seconds per set" definition (open PO decision). Court-to-gym load rules. Sign-in (deferred to R1.0). Nutrition.
