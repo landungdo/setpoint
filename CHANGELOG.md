@@ -4,8 +4,14 @@ All notable changes to Setpoint are documented here. Versions follow [Semantic V
 
 ## [Unreleased]
 
+### Added
+- Saved gym and court sessions can be edited from History, including date/time, duration, RPE, notes, exercises and individual set values. Dependent PR flags are rebuilt chronologically after gym history changes.
+
 ### Fixed
 - Workout set rows can remove the selected unconfirmed set instead of only removing the last set; confirmed sets must be undone first and every exercise keeps at least one set.
+
+### Tests
+- Added regression coverage for saved gym/court edits, chronological record rebuilding, validation, active-workout blocking and cross-month moves (36 tests total).
 
 ## [0.3.0] – 2026-09-30 — Plan, library & body
 
